@@ -19,31 +19,31 @@ router.get('/sub', async (req, res) => {
     }
 
     try {
-        // 查询数据库中的节点信息
-        const nodes = await NodeInfo.find({ email });
-
-        if (!nodes || nodes.length === 0) {
-            return res.status(404).send('未找到对应的节点信息');
-        }
+        // 使用游标逐条处理数据
+        const cursor = NodeInfo.find({ email }).cursor();
+        let subscription = '';
 
         // 构造订阅内容
-        const subscription = nodes.map(node => {
+        for (let node = await cursor.next(); node != null; node = await cursor.next()) {
             const { vlessList } = node;
 
             // 确保返回的节点信息是 VLESS 格式
-            if (!vlessList.startsWith('vless://')) {
-                return null;
+            if (vlessList.startsWith('vless://')) {
+                subscription += vlessList + '\n';
             }
+        }
 
-            return vlessList;
-        }).filter(Boolean).join('\n'); // 过滤掉无效的节点并用换行符拼接
         logger.info(`/sub subscription: ${subscription}`);
+
+        if (!subscription) {
+            return res.status(404).send('未找到对应的节点信息');
+        }
 
         // 返回订阅内容
         res.setHeader('Content-Type', 'text/plain');
-        res.send(subscription);
+        res.send(subscription.trim()); // 去掉最后的多余换行符
     } catch (err) {
-        console.error(err);
+        logger.error(`订阅错误: ${err}`);
         res.status(500).send('服务器内部错误');
     }
 });
