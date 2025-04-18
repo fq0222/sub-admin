@@ -35,11 +35,11 @@ router.get('/sub', async (req, res) => {
         logger.info(`/sub subscription: ${nodes}`);
 
         // 对整个订阅内容进行 Base64 编码
-        // const encodedSubscription = encodeBase64(subscription.trim());
+        const encodedSubscription = encodeBase64(subscription.trim());
 
         // 返回订阅内容
         res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        res.send(subscription);
+        res.send(encodedSubscription);
     } catch (err) {
         logger.error(`订阅错误: ${err}`);
         res.status(500).send('服务器内部错误');
