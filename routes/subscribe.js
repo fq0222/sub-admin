@@ -5,7 +5,7 @@ const NodeInfo = require('../models/NodeInfo');
 
 
 // 订阅节点 ; charset=utf-8
-router.get('/', async (req, res) => {
+router.get('/sub', async (req, res) => {
     const { email } = req.query;
     console.log('subscribe email:', req.query);
     // 检查请求者的ip地址

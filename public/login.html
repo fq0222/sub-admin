@@ -113,7 +113,7 @@
         if (data.token) {
           // 登录成功
           localStorage.setItem('token', data.token);
-          window.location.href = '/admin'; // 登录后跳转页面
+          window.location.href = '/admin.html'; // 登录后跳转页面
         } else {
           errorMsg.textContent = data.error || '登录失败';
         }

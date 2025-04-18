@@ -7,7 +7,7 @@ const Admin = require('../models/Admin'); // 引入管理员模型
 const bcrypt = require('bcrypt'); // 引入 bcrypt
 
 
-router.post('', async (req, res) => {
+router.post('/login', async (req, res) => {
   let { username, password } = req.body;
   console.log('/login: ', req.body);
 
