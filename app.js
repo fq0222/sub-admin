@@ -25,9 +25,7 @@ app.use('/admin', adminRouter);
 app.use(loginRouter);
 app.use(subRouter);
 
-app.all('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'nginx.html'));
-});
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
