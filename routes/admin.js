@@ -5,6 +5,7 @@ const NodeInfo = require('../models/NodeInfo');
 const Admin = require('../models/Admin'); // 引入管理员模型
 const { authenticate } = require('../mid/auth');
 const bcrypt = require('bcrypt'); // 引入 bcrypt
+const logger = require('../log/logger');
 
 // 所有接口都加上鉴权中间件
 router.use(authenticate);
@@ -84,7 +85,8 @@ router.post('/set', async (req, res) => {
 
     // 对密码进行加密
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log('admin/set hashedPassword:', hashedPassword);
+    logger.info(`admin/set hashedPassword: ${hashedPassword}`);
+
     // 创建管理员账号
     const admin = new Admin({ username, password: hashedPassword });
     await admin.save();
@@ -99,8 +101,8 @@ router.post('/set', async (req, res) => {
 router.put('/update-admin', async (req, res) => {
   try {
     const { username, password } = req.body;
-    console.log('admin/update-admin username:', username);
-    console.log('admin/update-admin password:', password);
+    logger.info(`admin/update-admin username: ${username}`);
+    logger.info(`admin/update-admin password: ${password}`);
 
     if (!username || !password) {
       return res.status(400).json({ success: false, message: '用户名和密码不能为空' });
@@ -114,7 +116,8 @@ router.put('/update-admin', async (req, res) => {
 
     // 对新密码进行加密
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log('admin/update-admin hashedPassword:', hashedPassword);
+    logger.info(`admin/update-admin hashedPassword: ${hashedPassword}`);
+
     // 更新管理员密码
     admin.password = hashedPassword;
     await admin.save();

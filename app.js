@@ -9,7 +9,7 @@ const loginRouter = require('./routes/login');
 const subRouter = require('./routes/subscribe');
 
 
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 12111;
 
 
 // 连接 MongoDB

@@ -5,16 +5,16 @@ const jwt = require('jsonwebtoken');
 const { SECRET } = require('../mid/auth');
 const Admin = require('../models/Admin'); // 引入管理员模型
 const bcrypt = require('bcrypt'); // 引入 bcrypt
+const logger = require('../log/logger');
 
 
 router.post('/login', async (req, res) => {
   let { username, password } = req.body;
-  console.log('/login: ', req.body);
 
   // 解码用户名和密码
   const decodedPassword = Buffer.from(password, 'base64').toString();
   const decodedUsername = Buffer.from(username, 'base64').toString();
-  console.log(`/login: decodedUsername: ${decodedUsername}, decodedPassword: ${decodedPassword}`);
+  logger.info(`/login: username: ${username}, password: ${password}`);
 
   try {
     // 检查管理员表是否为空
@@ -47,7 +47,7 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign({ username: decodedUsername }, SECRET, { expiresIn: '6h' });
     return res.json({ token });
   } catch (err) {
-    console.error('登录错误:', err);
+    logger.error(`登录错误: ${err}`);
     return res.status(500).json({ error: '服务器内部错误' });
   }
 });
