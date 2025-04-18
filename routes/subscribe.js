@@ -29,7 +29,8 @@ router.get('/sub', async (req, res) => {
         if (!nodes || nodes.length === 0) {
             return res.status(404).send('未找到对应的节点信息');
         }
-
+        // 提取 vlessList 字段并拼接成一个字符串
+        const subscription = nodes.map(node => node.vlessList).join('');
         // logger.info(`/sub subscription: ${subscription}`);
         logger.info(`/sub subscription: ${nodes}`);
 
@@ -38,7 +39,7 @@ router.get('/sub', async (req, res) => {
 
         // 返回订阅内容
         res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        res.send(nodes);
+        res.send(subscription);
     } catch (err) {
         logger.error(`订阅错误: ${err}`);
         res.status(500).send('服务器内部错误');
