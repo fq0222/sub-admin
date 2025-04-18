@@ -24,7 +24,7 @@ router.get('/sub', async (req, res) => {
 
     try {
         // 直接查询数据库并返回结果
-        const nodes = await NodeInfo.find({ email });
+        const nodes = await NodeInfo.find({ email }).select('vlessList -_id');
 
         if (!nodes || nodes.length === 0) {
             return res.status(404).send('未找到对应的节点信息');
