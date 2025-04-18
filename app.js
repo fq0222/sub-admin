@@ -25,6 +25,9 @@ app.use('/admin', adminRouter);
 app.use(loginRouter);
 app.use(subRouter);
 
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'nginx.html'));
+});
 
 
 app.listen(PORT, () => {
