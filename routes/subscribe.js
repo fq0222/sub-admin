@@ -23,32 +23,22 @@ router.get('/sub', async (req, res) => {
     }
 
     try {
-        // 使用游标逐条处理数据
-        const cursor = NodeInfo.find({ email }).cursor();
-        let subscription = '';
+        // 直接查询数据库并返回结果
+        const nodes = await NodeInfo.find({ email });
 
-        // 构造订阅内容
-        for (let node = await cursor.next(); node != null; node = await cursor.next()) {
-            const { vlessList } = node;
-
-            // 确保返回的节点信息是 VLESS 格式
-            if (vlessList.startsWith('vless://')) {
-                subscription += vlessList.trim() + '\r\n'; // 使用 \r\n 作为换行符
-            }
+        if (!nodes || nodes.length === 0) {
+            return res.status(404).send('未找到对应的节点信息');
         }
 
         // logger.info(`/sub subscription: ${subscription}`);
-        logger.info(`/sub subscription: ${subscription.slice(0, 10)}...`);
+        logger.info(`/sub subscription: ${nodes}`);
 
-        if (!subscription) {
-            return res.status(404).send('未找到对应的节点信息');
-        }
         // 对整个订阅内容进行 Base64 编码
-        const encodedSubscription = encodeBase64(subscription.trim());
+        // const encodedSubscription = encodeBase64(subscription.trim());
 
         // 返回订阅内容
         res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        res.send(encodedSubscription);
+        res.send(nodes);
     } catch (err) {
         logger.error(`订阅错误: ${err}`);
         res.status(500).send('服务器内部错误');
