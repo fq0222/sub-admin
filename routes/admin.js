@@ -14,10 +14,7 @@ router.use(authenticate);
 router.post('/add', async (req, res) => {
   try {
     const { email, vlessList, startTime, endTime } = req.body;
-    const vlessListStr = vlessList.toString().trim();
-    logger.info(`admin/add vlessListStr: ${vlessListStr}`);
-
-    const node = new NodeInfo({ email, vlessListStr, startTime, endTime });
+    const node = new NodeInfo({ email, vlessList, startTime, endTime });
     await node.save();
     res.json({ success: true, message: '添加成功' });
   } catch (err) {
