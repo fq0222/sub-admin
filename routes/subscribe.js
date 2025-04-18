@@ -36,7 +36,7 @@ router.get('/sub', async (req, res) => {
 
         // 对整个订阅内容进行 Base64 编码
         // const encodedSubscription = encodeBase64(subscription.trim());
-        const encodedSubscription = btoa(unescape(encodeURIComponent(subscription)));
+        const encodedSubscription = btoa(unescape(encodeURIComponent(subscription.trim())));
 
         // 返回订阅内容
         res.setHeader('Content-Type', 'text/plain; charset=utf-8');
