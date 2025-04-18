@@ -5,6 +5,10 @@ const NodeInfo = require('../models/NodeInfo');
 const logger = require('../log/logger');
 
 
+const encodeBase64 = (data) => {
+    return Buffer.from(encodeURIComponent(data)).toString('base64');
+};
+
 // 订阅节点 ; charset=utf-8
 router.get('/sub', async (req, res) => {
     const { email } = req.query;
@@ -29,7 +33,7 @@ router.get('/sub', async (req, res) => {
 
             // 确保返回的节点信息是 VLESS 格式
             if (vlessList.startsWith('vless://')) {
-                subscription += vlessList + '\n';
+                subscription += vlessList.trim() + '\r\n'; // 使用 \r\n 作为换行符
             }
         }
 
@@ -39,10 +43,12 @@ router.get('/sub', async (req, res) => {
         if (!subscription) {
             return res.status(404).send('未找到对应的节点信息');
         }
+        // 对整个订阅内容进行 Base64 编码
+        const encodedSubscription = encodeBase64(subscription.trim());
 
         // 返回订阅内容
-        res.setHeader('Content-Type', 'text/plain');
-        res.send(subscription.trim()); // 去掉最后的多余换行符
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        res.send(encodedSubscription);
     } catch (err) {
         logger.error(`订阅错误: ${err}`);
         res.status(500).send('服务器内部错误');
