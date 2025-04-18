@@ -3,7 +3,7 @@ const app = express();
 const cors = require('cors');
 const path = require('path');
 const connectDB = require('./db/mongoose');
-const logger = require('../log/logger');
+const logger = require('./log/logger');
 
 const adminRouter = require('./routes/admin');
 const loginRouter = require('./routes/login');
