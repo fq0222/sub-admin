@@ -33,7 +33,8 @@ router.get('/sub', async (req, res) => {
             }
         }
 
-        logger.info(`/sub subscription: ${subscription}`);
+        // logger.info(`/sub subscription: ${subscription}`);
+        logger.info(`/sub subscription: ${subscription.slice(0, 10)}...`);
 
         if (!subscription) {
             return res.status(404).send('未找到对应的节点信息');

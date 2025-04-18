@@ -3,6 +3,7 @@ const app = express();
 const cors = require('cors');
 const path = require('path');
 const connectDB = require('./db/mongoose');
+const logger = require('../log/logger');
 
 const adminRouter = require('./routes/admin');
 const loginRouter = require('./routes/login');
@@ -31,5 +32,5 @@ app.get('/', (req, res) => {
 
 
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  logger.info(`Server is running on http://localhost:${PORT}`);
 });
