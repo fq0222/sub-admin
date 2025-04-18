@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>节点管理后台</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+      background: #f7f7f7;
+    }
+
+    /* 左侧导航栏样式 */
+    .sidebar {
+      width: 200px;
+      background: #2c87f0;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar h2 {
+      font-size: 18px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .sidebar button {
+      background: none;
+      border: none;
+      color: white;
+      text-align: left;
+      padding: 10px;
+      margin: 5px 0;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .sidebar button:hover {
+      background: #1e6ad8;
+    }
+
+    /* 主内容区域样式 */
+    .content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    h3 {
+      margin-top: 0;
+    }
+
+    .form-group {
+      margin: 10px 0;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+    }
+
+    button {
+      padding: 8px 12px;
+      margin: 5px 0;
+      background: #2c87f0;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1e6ad8;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      word-break: break-all;
+      white-space: normal;
+      vertical-align: top;
+    }
+
+    pre {
+      background: #f9f9f9;
+      padding: 10px;
+      white-space: pre-wrap;
+      border: 1px solid #ccc;
+    }
+
+    @media (max-width: 600px) {
+      .sidebar {
+        width: 150px;
+      }
+
+      .sidebar button {
+        font-size: 14px;
+      }
+
+      table, input, textarea {
+        font-size: 14px;
+      }
+
+      th, td {
+        padding: 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 左侧导航栏 -->
+  <div class="sidebar">
+    <h2>节点管理</h2>
+    <button onclick="showSection('addNodeSection')">添加节点</button>
+    <button onclick="showSection('searchNodeSection')">查询节点</button>
+    <button onclick="showSection('nodeListSection')">节点列表</button>
+    <button onclick="showSection('vlessGeneratorSection')">VLESS 节点生成器</button>
+    <button onclick="showSection('settingsSection')">设置</button>
+  </div>
+
+  <!-- 主内容区域 -->
+  <div class="content">
+    <!-- 添加节点 -->
+    <div id="addNodeSection" class="section">
+      <h3>添加节点</h3>
+      <div class="form-group">
+        <label>邮箱:</label>
+        <input id="email" type="text" />
+      </div>
+      <div class="form-group">
+        <label>节点信息 (vlessList):</label>
+        <textarea id="vlessList" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>起始时间 (格式: 2025-04-17T14:00):</label>
+        <input id="startTime" type="datetime-local" />
+      </div>
+      <div class="form-group">
+        <label>到期时间:</label>
+        <input id="endTime" type="datetime-local" />
+      </div>
+      <button onclick="addNode()">添加节点</button>
+    </div>
+
+    <!-- 查询节点 -->
+    <div id="searchNodeSection" class="section" style="display: none;">
+      <h3>查询节点</h3>
+      <div class="form-group">
+        <label>邮箱:</label>
+        <input id="searchEmail" type="text" placeholder="输入邮箱进行查询" />
+      </div>
+      <button onclick="searchNode()">查询节点</button>
+
+      <!-- 查询结果表格 -->
+      <h4>查询结果</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>邮箱</th>
+            <th>节点信息</th>
+            <th>起始时间</th>
+            <th>到期时间</th>
+          </tr>
+        </thead>
+        <tbody id="searchResultsTable"></tbody>
+      </table>
+    </div>
+
+    <!-- 节点列表 -->
+    <div id="nodeListSection" class="section" style="display: none;">
+      <h3>节点列表</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>邮箱</th>
+            <th>节点信息</th>
+            <th>起始时间</th>
+            <th>到期时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="nodeTable"></tbody>
+      </table>
+    </div>
+
+    <!-- VLESS 节点生成器 -->
+    <div id="vlessGeneratorSection" class="section" style="display: none;">
+      <h3>VLESS 节点模板生成器</h3>
+      <div class="form-group">
+        <label>节点模板（VLESS 格式）：</label>
+        <textarea id="template" placeholder="vless://<uuid>@<ip>:443?..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>替换后的 UUID：</label>
+        <input type="text" id="uuid" placeholder="请输入 UUID">
+      </div>
+      <div class="form-group">
+        <label>IP 地址列表（每行一个）：</label>
+        <textarea id="ip-list" placeholder="192.168.1.1&#10;8.8.8.8"></textarea>
+      </div>
+      <button id="generate-button">生成节点</button>
+      <h4>生成结果：</h4>
+      <pre id="output"></pre>
+    </div>
+
+
+    <!-- 设置 -->
+    <div id="settingsSection" class="section" style="display: none;">
+      <h3>设置管理员账号密码</h3>
+      <div class="form-group">
+        <label>用户名:</label>
+        <input id="adminUsername" type="text" placeholder="请输入管理员用户名" />
+      </div>
+      <div class="form-group">
+        <label>密码:</label>
+        <input id="adminPassword" type="password" placeholder="请输入管理员密码" />
+      </div>
+      <button onclick="setAdmin()">创建管理员</button>
+      <button onclick="updateAdmin()">修改管理员密码</button>
+    </div>
+  </div>
+
+  <!-- 修改节点模态框 -->
+  <dialog id="editNodeDialog">
+    <h3>修改节点</h3>
+    <form id="editNodeForm">
+      <div class="form-group">
+        <label>邮箱:</label>
+        <input id="editEmail" type="text" />
+      </div>
+      <div class="form-group">
+        <label>节点信息 (vlessList):</label>
+        <textarea id="editVlessList" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>起始时间:</label>
+        <input id="editStartTime" type="datetime-local" />
+      </div>
+      <div class="form-group">
+        <label>到期时间:</label>
+        <input id="editEndTime" type="datetime-local" />
+      </div>
+      <div class="form-group">
+        <button type="button" onclick="submitEditNode()">保存修改</button>
+        <button type="button" onclick="closeEditDialog()">取消</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('未登录，请先登录！');
+      window.location.href = '/login';
+    }
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+
+    let currentEditNodeId = null;
+
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(section => {
+        section.style.display = 'none';
+      });
+      document.getElementById(sectionId).style.display = 'block';
+    }
+
+    window.onload = function() {
+      const generateButton = document.getElementById('generate-button');
+      generateButton.onclick = generate;
+    };
+
+    async function setAdmin() {
+      const username = document.getElementById('adminUsername').value;
+      const password = document.getElementById('adminPassword').value;
+
+      if (!username || !password) {
+        alert('用户名和密码不能为空！');
+        return;
+      }
+
+      try {
+        const res = await fetch('/admin/set', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('管理员账号创建成功');
+        } else {
+          alert('创建失败: ' + data.message);
+        }
+      } catch (err) {
+        alert('请求失败: ' + err.message);
+      }
+    }
+
+    async function updateAdmin() {
+      const username = document.getElementById('adminUsername').value;
+      const password = document.getElementById('adminPassword').value;
+
+      if (!username || !password) {
+        alert('用户名和密码不能为空！');
+        return;
+      }
+
+      try {
+        const res = await fetch('/admin/update-admin', {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('管理员密码修改成功');
+        } else {
+          alert('修改失败: ' + data.message);
+        }
+      } catch (err) {
+        alert('请求失败: ' + err.message);
+      }
+    }
+
+    function generate() {
+      const template = document.getElementById("template").value.trim();
+      const uuid = document.getElementById("uuid").value.trim();
+      const ipList = document.getElementById("ip-list").value.trim().split('\n').map(ip => ip.trim()).filter(ip => ip);
+
+      if (!template || !uuid || ipList.length === 0) {
+        alert("请完整填写模板、UUID 和 IP 列表！");
+        return;
+      }
+
+      let result = '';
+      for (let ip of ipList) {
+        let node = template;
+
+        // 替换 UUID
+        const uuidStartIndex = node.indexOf(':') + 3;
+        const uuidEndIndex = node.indexOf('@', uuidStartIndex);
+        if (uuidStartIndex > 0 && uuidEndIndex > 0) {
+          node = node.substring(0, uuidStartIndex) + uuid + node.substring(uuidEndIndex);
+        }
+
+        // 替换 IP 地址
+        const ipStartIndex = node.indexOf('@') + 1;
+        const ipEndIndex = node.indexOf(':', ipStartIndex);
+        if (ipStartIndex > 0 && ipEndIndex > 0) {
+          node = node.substring(0, ipStartIndex) + ip + node.substring(ipEndIndex);
+        }
+
+        result += node + '\n';
+      }
+
+      document.getElementById("output").textContent = result;
+    }
+
+    async function loadNodes() {
+      try {
+        const res = await fetch('/admin/list', { headers });
+        const data = await res.json();
+        if (data.success) {
+          renderTable(data.data);
+        } else {
+          alert('加载节点列表失败: ' + data.error);
+        }
+      } catch (err) {
+        alert('请求失败: ' + err.message);
+      }
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('nodeTable');
+      tbody.innerHTML = '';
+      data.forEach(node => {
+        const encodedVlessList = encodeURIComponent(node.vlessList);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${node.email}</td>
+          <td>${node.vlessList}</td>
+          <td>${new Date(node.startTime).toLocaleString()}</td>
+          <td>${new Date(node.endTime).toLocaleString()}</td>
+          <td>
+            <button onclick="deleteNode('${node._id}')">删除</button>
+            <button onclick="editNode('${node._id}', '${node.email}', '${encodedVlessList}', '${node.startTime}', '${node.endTime}')">修改</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    async function addNode() {
+      const email = document.getElementById('email').value;
+      const vlessList = document.getElementById('vlessList').value;
+      const startTime = document.getElementById('startTime').value;
+      const endTime = document.getElementById('endTime').value;
+
+      try {
+        const res = await fetch('/admin/add', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ email, vlessList, startTime, endTime })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('节点添加成功');
+          loadNodes();
+        } else {
+          alert('添加失败: ' + data.error);
+        }
+      } catch (err) {
+        alert('请求失败: ' + err.message);
+      }
+    }
+
+    async function deleteNode(id) {
+      if (!confirm('确认删除该节点？')) return;
+
+      try {
+        const res = await fetch(`/admin/delete/${id}`, {
+          method: 'DELETE',
+          headers
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('节点删除成功');
+          loadNodes();
+        } else {
+          alert('删除失败: ' + data.error);
+        }
+      } catch (err) {
+        alert('请求失败: ' + err.message);
+      }
+    }
+
+    function openEditDialog(node) {
+      document.getElementById('editEmail').value = node.email;
+      document.getElementById('editVlessList').value = node.vlessList;
+      document.getElementById('editStartTime').value = new Date(node.startTime).toISOString().slice(0, 16);
+      document.getElementById('editEndTime').value = new Date(node.endTime).toISOString().slice(0, 16);
+      currentEditNodeId = node._id;
+      document.getElementById('editNodeDialog').showModal();
+    }
+
+    function closeEditDialog() {
+      document.getElementById('editNodeDialog').close();
+    }
+
+    async function submitEditNode() {
+      const email = document.getElementById('editEmail').value;
+      const vlessList = document.getElementById('editVlessList').value;
+      const startTime = document.getElementById('editStartTime').value;
+      const endTime = document.getElementById('editEndTime').value;
+
+      if (!email || !vlessList || !startTime || !endTime) {
+        alert('所有字段均为必填项！');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/admin/update/${currentEditNodeId}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ email, vlessList, startTime, endTime })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('节点修改成功');
+          closeEditDialog();
+          loadNodes();
+        } else {
+          alert('修改失败: ' + data.error);
+        }
+      } catch (err) {
+        alert('请求失败: ' + err.message);
+      }
+    }
+
+    function editNode(id, email, encodedVlessList, startTime, endTime) {
+      const node = {
+        _id: id,
+        email: email,
+        vlessList: decodeURIComponent(encodedVlessList),
+        startTime: startTime,
+        endTime: endTime
+      };
+      openEditDialog(node);
+    }
+
+    async function searchNode() {
+      const email = document.getElementById('searchEmail').value;
+      if (!email) {
+        alert('请输入邮箱进行查询');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/admin/search?email=${email}`, { headers });
+        const data = await res.json();
+        if (data.success) {
+          renderSearchResults(data.data);
+        } else {
+          alert('查询失败: ' + data.error);
+        }
+      } catch (err) {
+        alert('请求失败: ' + err.message);
+      }
+    }
+
+    function renderSearchResults(data) {
+      const searchResultsTable = document.getElementById('searchResultsTable');
+      searchResultsTable.innerHTML = '';
+      data.forEach(node => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${node.email}</td>
+          <td>${node.vlessList}</td>
+          <td>${new Date(node.startTime).toLocaleString()}</td>
+          <td>${new Date(node.endTime).toLocaleString()}</td>
+        `;
+        searchResultsTable.appendChild(row);
+      });
+    }
+
+    loadNodes();
+  </script>
+</body>
+</html>
