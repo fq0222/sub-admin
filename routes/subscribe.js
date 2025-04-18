@@ -2,15 +2,17 @@
 const express = require('express');
 const router = express.Router();
 const NodeInfo = require('../models/NodeInfo');
+const logger = require('../log/logger');
 
 
 // 订阅节点 ; charset=utf-8
 router.get('/sub', async (req, res) => {
     const { email } = req.query;
-    console.log('subscribe email:', req.query);
+    logger.info('/sub subscribe email:', email);
+    logger.info('/sub subscribe query:', req.query);
     // 检查请求者的ip地址
     const ip = req.ip; // 获取请求者的IP地址
-    console.log('subscribe ip:', ip);
+    logger.info('/sub subscribe ip:', ip);
     // 这里可以添加IP地址的验证逻辑
 
     if (!email) {
@@ -36,6 +38,7 @@ router.get('/sub', async (req, res) => {
 
             return vlessList;
         }).filter(Boolean).join('\n'); // 过滤掉无效的节点并用换行符拼接
+        logger.info('/sub subscription:', subscription);
 
         // 返回订阅内容
         res.setHeader('Content-Type', 'text/plain');
