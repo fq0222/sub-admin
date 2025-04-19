@@ -293,9 +293,18 @@
       document.getElementById(sectionId).style.display = 'block';
     }
 
-    window.onload = function() {
+    window.onload = async function() {
       const generateButton = document.getElementById('generate-button');
       generateButton.onclick = generate;
+
+      // 加载默认 IP 列表
+      try {
+        const res = await fetch('/CF-ip.txt'); // 确保 CF-ip.txt 文件在服务器的静态资源路径下
+        const ipList = await res.text();
+        document.getElementById('ip-list').value = ipList.trim(); // 将 IP 列表填充到文本框中
+      } catch (err) {
+        console.error('加载默认 IP 列表失败:', err);
+      }
     };
 
     async function setAdmin() {
@@ -360,8 +369,15 @@
         return;
       }
 
+      // 随机选择 25 个 IP
+      const selectedIPs = [];
+      while (selectedIPs.length < 25 && ipList.length > 0) {
+        const randomIndex = Math.floor(Math.random() * ipList.length);
+        selectedIPs.push(ipList.splice(randomIndex, 1)[0]);
+      }
+
       let result = '';
-      for (let ip of ipList) {
+      for (let ip of selectedIPs) {
         let node = template;
 
         // 替换 UUID
