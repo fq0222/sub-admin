@@ -1,13 +1,15 @@
 // auth.js
 const jwt = require('jsonwebtoken');
+const logger = require('../log/logger');
 
 const SECRET = 'adfadfadsfdfwehgfd243'; // 可放入 .env 文件
 
 // 登录校验中间件
 function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
-  // console.log('完整请求头:', req.headers); // 打印完整请求头
-  console.log('authHeader:', authHeader);
+
+  logger.info(`auth authHeader: ${authHeader ? authHeader.slice(0, 20) : 'null'}`);
+
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: '未授权，缺少 token' });
   }

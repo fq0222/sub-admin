@@ -154,6 +154,10 @@
         <label>到期时间:</label>
         <input id="endTime" type="datetime-local" />
       </div>
+      <div class="form-group">
+        <label>服务器 (server):</label>
+        <input id="server" type="text" placeholder="请输入服务器信息" />
+      </div>
       <button onclick="addNode()">添加节点</button>
     </div>
 
@@ -175,6 +179,7 @@
             <th>节点信息</th>
             <th>起始时间</th>
             <th>到期时间</th>
+            <th>服务器</th> <!-- 新增服务器列 -->
           </tr>
         </thead>
         <tbody id="searchResultsTable"></tbody>
@@ -191,6 +196,7 @@
             <th>节点信息</th>
             <th>起始时间</th>
             <th>到期时间</th>
+            <th>服务器</th> <!-- 新增服务器列 -->
             <th>操作</th>
           </tr>
         </thead>
@@ -254,6 +260,10 @@
       <div class="form-group">
         <label>到期时间:</label>
         <input id="editEndTime" type="datetime-local" />
+      </div>
+      <div class="form-group">
+        <label>服务器 (server):</label>
+        <input id="editServer" type="text" />
       </div>
       <div class="form-group">
         <button type="button" onclick="submitEditNode()">保存修改</button>
@@ -396,29 +406,45 @@
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${node.email}</td>
-          <td>${node.vlessList}</td>
+          <td>
+            <span class="short-vless">${node.vlessList.slice(0, 60)}...</span>
+            <button onclick="copyToClipboard('${node.vlessList.replace(/'/g, "\\'")}')">复制</button>
+          </td>
           <td>${new Date(node.startTime).toLocaleString()}</td>
           <td>${new Date(node.endTime).toLocaleString()}</td>
+          <td>${node.server || '未指定'}</td>
           <td>
             <button onclick="deleteNode('${node._id}')">删除</button>
-            <button onclick="editNode('${node._id}', '${node.email}', '${encodedVlessList}', '${node.startTime}', '${node.endTime}')">修改</button>
+            <button onclick="editNode('${node._id}', '${node.email}', '${encodedVlessList}', '${node.startTime}', '${node.endTime}', '${node.server}')">修改</button>
           </td>
         `;
         tbody.appendChild(row);
       });
     }
-
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert('节点信息已复制到剪贴板！');
+      }).catch(err => {
+        alert('复制失败: ' + err);
+      });
+    }
     async function addNode() {
       const email = document.getElementById('email').value;
       const vlessList = document.getElementById('vlessList').value;
       const startTime = document.getElementById('startTime').value;
       const endTime = document.getElementById('endTime').value;
+      const server = document.getElementById('server').value; // 获取 server 字段
+
+      if (!email || !vlessList || !startTime || !endTime || !server) {
+        alert('所有字段均为必填项！');
+        return;
+      }
 
       try {
         const res = await fetch('/admin/add', {
           method: 'POST',
           headers,
-          body: JSON.stringify({ email, vlessList, startTime, endTime })
+          body: JSON.stringify({ email, vlessList, startTime, endTime, server }) // 传递 server 字段
         });
         const data = await res.json();
         if (data.success) {
@@ -457,6 +483,7 @@
       document.getElementById('editVlessList').value = node.vlessList;
       document.getElementById('editStartTime').value = new Date(node.startTime).toISOString().slice(0, 16);
       document.getElementById('editEndTime').value = new Date(node.endTime).toISOString().slice(0, 16);
+      document.getElementById('editServer').value = node.server || ''; // 如果 server 未定义，则设置为空字符串
       currentEditNodeId = node._id;
       document.getElementById('editNodeDialog').showModal();
     }
@@ -470,8 +497,9 @@
       const vlessList = document.getElementById('editVlessList').value;
       const startTime = document.getElementById('editStartTime').value;
       const endTime = document.getElementById('editEndTime').value;
+      const server = document.getElementById('editServer').value; // 获取 server 字段
 
-      if (!email || !vlessList || !startTime || !endTime) {
+      if (!email || !vlessList || !startTime || !endTime || !server) {
         alert('所有字段均为必填项！');
         return;
       }
@@ -480,7 +508,7 @@
         const res = await fetch(`/admin/update/${currentEditNodeId}`, {
           method: 'PUT',
           headers,
-          body: JSON.stringify({ email, vlessList, startTime, endTime })
+          body: JSON.stringify({ email, vlessList, startTime, endTime, server }) // 传递 server 字段
         });
         const data = await res.json();
         if (data.success) {
@@ -495,13 +523,14 @@
       }
     }
 
-    function editNode(id, email, encodedVlessList, startTime, endTime) {
+    function editNode(id, email, encodedVlessList, startTime, endTime, server) {
       const node = {
         _id: id,
         email: email,
         vlessList: decodeURIComponent(encodedVlessList),
         startTime: startTime,
-        endTime: endTime
+        endTime: endTime,
+        server: server || '' // 如果 server 未定义，则设置为空字符串
       };
       openEditDialog(node);
     }
@@ -533,9 +562,13 @@
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${node.email}</td>
-          <td>${node.vlessList}</td>
+          <td>
+            <span class="short-vless">${node.vlessList.slice(0, 60)}...</span>
+            <button onclick="copyToClipboard('${node.vlessList.replace(/'/g, "\\'")}')">复制</button>
+          </td>
           <td>${new Date(node.startTime).toLocaleString()}</td>
           <td>${new Date(node.endTime).toLocaleString()}</td>
+          <td>${node.server || '未指定'}</td> <!-- 显示 server 字段 -->
         `;
         searchResultsTable.appendChild(row);
       });
