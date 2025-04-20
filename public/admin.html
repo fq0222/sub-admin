@@ -460,7 +460,7 @@
           <td>${node.email}</td>
           <td>
             <span class="short-vless">${node.vlessList.slice(0, 60)}...</span>
-            <button onclick="copyToClipboard('${node.vlessList.replace(/'/g, "\\'")}')">复制</button>
+            <button onclick="copyToClipboard(decodeURIComponent('${encodeURIComponent(node.vlessList)}'))">复制</button>
           </td>
           <td>${new Date(node.startTime).toLocaleString()}</td>
           <td>${new Date(node.endTime).toLocaleString()}</td>
