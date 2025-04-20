@@ -18,7 +18,20 @@ connectDB();
 
 app.use(cors()); // 允许所有来源发起的跨域请求
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public'))); // 静态文件路径
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.mp4')) {
+      res.setHeader('Content-Type', 'video/mp4');
+      res.setHeader('Content-Disposition', 'inline'); // 明确提示浏览器内联播放
+    } else if (filePath.endsWith('.webm')) {
+      res.setHeader('Content-Type', 'video/webm');
+      res.setHeader('Content-Disposition', 'inline'); // 明确提示浏览器内联播放
+    } else if (filePath.endsWith('.ogg')) {
+      res.setHeader('Content-Type', 'video/ogg');
+      res.setHeader('Content-Disposition', 'inline'); // 明确提示浏览器内联播放
+    }
+  }
+}));
 
 
 // 路由

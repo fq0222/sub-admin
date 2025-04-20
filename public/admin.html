@@ -102,6 +102,17 @@
       border: 1px solid #ccc;
     }
 
+    .checkbox-label {
+      display: inline-flex; /* 使用 inline-flex 让内容在同一行 */
+      align-items: center; /* 垂直居中对齐 */
+      gap: 0.5em; /* 设置复选框和文字之间的间距，0.5em 约等于两个字符宽度 */
+      white-space: nowrap; /* 禁止文字换行 */
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      margin: 0; /* 移除默认的 margin */
+    }
+
     @media (max-width: 600px) {
       .sidebar {
         width: 150px;
@@ -219,6 +230,15 @@
         <label>IP 地址列表（每行一个）：</label>
         <textarea id="ip-list" placeholder="192.168.1.1&#10;8.8.8.8"></textarea>
       </div>
+      <div class="form-group">
+        <label>域名列表（每行一个）：</label>
+        <textarea id="domain-list" placeholder="visa.cn&#10;visa.com"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="use-domain" checked /> 使用域名替换 IP
+        </label>
+      </div>
       <button id="generate-button">生成节点</button>
       <h4>生成结果：</h4>
       <pre id="output"></pre>
@@ -305,6 +325,15 @@
       } catch (err) {
         console.error('加载默认 IP 列表失败:', err);
       }
+
+      // 加载默认域名列表
+      try {
+        const domainRes = await fetch('/CF-Domain.txt'); // 确保 CF-Domain.txt 文件在服务器的静态资源路径下
+        const domainList = await domainRes.text();
+        document.getElementById('domain-list').value = domainList.trim(); // 将域名列表填充到文本框中
+      } catch (err) {
+        console.error('加载默认域名列表失败:', err);
+      }
     };
 
     async function setAdmin() {
@@ -362,22 +391,29 @@
     function generate() {
       const template = document.getElementById("template").value.trim();
       const uuid = document.getElementById("uuid").value.trim();
-      const ipList = document.getElementById("ip-list").value.trim().split('\n').map(ip => ip.trim()).filter(ip => ip);
+      const useDomain = document.getElementById("use-domain").checked; // 是否使用域名
+      const list = useDomain
+        ? document.getElementById("domain-list").value.trim().split('\n').map(item => item.trim()).filter(item => item)
+        : document.getElementById("ip-list").value.trim().split('\n').map(item => item.trim()).filter(item => item);
 
-      if (!template || !uuid || ipList.length === 0) {
-        alert("请完整填写模板、UUID 和 IP 列表！");
+      if (!template || !uuid || list.length === 0) {
+        alert("请完整填写模板、UUID 和列表！");
         return;
       }
 
       // 随机选择 25 个 IP
-      const selectedIPs = [];
-      while (selectedIPs.length < 25 && ipList.length > 0) {
-        const randomIndex = Math.floor(Math.random() * ipList.length);
-        selectedIPs.push(ipList.splice(randomIndex, 1)[0]);
+      let selectedList = [];
+      if (useDomain) {
+        selectedList = Array.from(list);
+      } else {
+        while (selectedList.length < 25 && list.length > 0) {
+          const randomIndex = Math.floor(Math.random() * list.length);
+          selectedList.push(list.splice(randomIndex, 1)[0]);
+        }
       }
 
       let result = '';
-      for (let ip of selectedIPs) {
+      for (let ip of selectedList) {
         let node = template;
 
         // 替换 UUID
