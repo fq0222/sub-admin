@@ -292,6 +292,33 @@
     </form>
   </dialog>
 
+  <!-- 发送邮件模态框 -->
+  <dialog id="sendEmailDialog">
+    <h3>发送邮件</h3>
+    <form id="sendEmailForm">
+      <div class="form-group">
+        <label>发件人邮箱 (from):</label>
+        <input id="fromEmail" type="email" placeholder="请输入发件人邮箱" required />
+      </div>
+      <div class="form-group">
+        <label>独立码 (授权码):</label>
+        <input id="authCode" type="password" placeholder="请输入授权码" required />
+      </div>
+      <div class="form-group">
+        <label>收件人邮箱 (to):</label>
+        <input id="toEmail" type="email" readonly />
+      </div>
+      <div class="form-group">
+        <label>解压密码:</label>
+        <input id="emailPassword" type="text" placeholder="请输入解压密码" required />
+      </div>
+      <div class="form-group">
+        <button type="button" onclick="sendEmail()">发送</button>
+        <button type="button" onclick="closeSendEmailDialog()">取消</button>
+      </div>
+    </form>
+  </dialog>
+
   <script>
     const token = localStorage.getItem('token');
     if (!token) {
@@ -469,6 +496,7 @@
             <button onclick="deleteNode('${node._id}')">删除</button>
             <button onclick="editNode('${node._id}', '${node.email}', '${encodedVlessList}', '${node.startTime}', '${node.endTime}', '${node.server}')">修改</button>
             <button onclick="generateSubscribeLink('${node.email}')">订阅链接</button>
+            <button onclick="openSendEmailDialog('${node.email}')">发送邮件</button>
           </td>
         `;
         tbody.appendChild(row);
@@ -578,6 +606,53 @@
           loadNodes();
         } else {
           alert('修改失败: ' + data.error);
+        }
+      } catch (err) {
+        alert('请求失败: ' + err.message);
+      }
+    }
+
+    function openSendEmailDialog(email) {
+      document.getElementById('toEmail').value = email; // 自动填充收件人邮箱
+      document.getElementById('sendEmailDialog').showModal();
+    }
+
+    function closeSendEmailDialog() {
+      document.getElementById('sendEmailDialog').close();
+    }
+
+    async function sendEmail() {
+      const fromEmail = document.getElementById('fromEmail').value;
+      const authCode = document.getElementById('authCode').value;
+      const toEmail = document.getElementById('toEmail').value;
+      const emailPassword = document.getElementById('emailPassword').value;
+
+      if (!fromEmail || !authCode || !toEmail || !emailPassword) {
+        alert('请填写所有字段！');
+        return;
+      }
+
+      try {
+        const res = await fetch('/admin/send-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            user: fromEmail,
+            pass: authCode,
+            to: toEmail,
+            password: emailPassword
+          })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          alert('邮件发送成功！');
+          closeSendEmailDialog();
+        } else {
+          alert('邮件发送失败: ' + data.message);
         }
       } catch (err) {
         alert('请求失败: ' + err.message);
