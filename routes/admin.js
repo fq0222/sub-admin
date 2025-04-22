@@ -8,6 +8,8 @@ const bcrypt = require('bcrypt'); // 引入 bcrypt
 const logger = require('../log/logger');
 const { sendEmail } = require('../mail/emailSender');
 const path = require('path');
+const crypto = require('crypto'); // 引入 crypto 模块
+const SendEmail = require('../models/SendEmail'); // 引入 SendEmail 模型
 
 // 所有接口都加上鉴权中间件
 router.use(authenticate);
@@ -97,6 +99,85 @@ router.post('/set', async (req, res) => {
     res.json({ success: true, message: '管理员账号创建成功' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.post('/set-email', async (req, res) => {
+  const { email, authCode, password } = req.body;
+
+  if (!email || !authCode || !password) {
+    return res.status(400).json({ success: false, message: '邮箱、安全码和解压密码不能为空' });
+  }
+
+  try {
+    // 加密安全码
+    const algorithm = 'aes-256-cbc';
+    const key = crypto.createHash('sha256').update(process.env.SECRET_KEY || 'default_secret_key').digest();
+    const iv = crypto.randomBytes(16);
+
+    const cipher = crypto.createCipheriv(algorithm, key, iv);
+    let encryptedAuthCode = cipher.update(authCode, 'utf8', 'hex');
+    encryptedAuthCode += cipher.final('hex');
+
+    // 将 IV 和加密后的数据一起存储
+    encryptedAuthCode = iv.toString('hex') + ':' + encryptedAuthCode;
+
+    // 检查表中数据数量
+    const recordCount = await SendEmail.countDocuments();
+    if (recordCount > 1) {
+      // 如果数据超过 1 条，删除所有记录
+      await SendEmail.deleteMany({});
+      logger.info('/set-email 超过 1 条记录，已删除所有记录');
+    }
+
+    // 查找并更新记录
+    const updatedRecord = await SendEmail.findOneAndUpdate(
+      { email }, // 查询条件：匹配 email
+      { authCode: encryptedAuthCode, password }, // 更新的字段
+      { upsert: true, new: true } // 如果不存在则创建新记录，并返回更新后的记录
+    );
+    logger.info(`/set-email set email success: ${updatedRecord}`);
+
+    res.json({ success: true, message: '邮箱、安全码和解压密码已保存' });
+  } catch (err) {
+    logger.error(`设置邮箱失败: ${err}`);
+    res.status(500).json({ success: false, message: '设置邮箱失败', error: err.message });
+  }
+});
+
+// 添加 /get-sendemail 接口
+router.get('/get-sendemail', async (req, res) => {
+  try {
+    // 查询数据库中所有的邮箱、加密的安全码和解压密码
+    const emailData = await SendEmail.find({}, { email: 1, authCode: 1, password: 1, _id: 0 });
+
+    if (!emailData || emailData.length === 0) {
+      return res.status(404).json({ success: false, message: '未找到任何邮箱、安全码和解压密码记录' });
+    }
+
+    // 解密安全码
+    const algorithm = 'aes-256-cbc';
+    const key = crypto.createHash('sha256').update(process.env.SECRET_KEY || 'default_secret_key').digest();
+
+    const decryptedData = emailData.map(record => {
+      const [ivHex, encryptedData] = record.authCode.split(':');
+      const iv = Buffer.from(ivHex, 'hex');
+
+      const decipher = crypto.createDecipheriv(algorithm, key, iv);
+      let decryptedAuthCode = decipher.update(encryptedData, 'hex', 'utf8');
+      decryptedAuthCode += decipher.final('utf8');
+
+      return {
+        email: record.email,
+        authCode: decryptedAuthCode,
+        password: record.password // 返回解压密码
+      };
+    });
+
+    res.json({ success: true, data: decryptedData });
+  } catch (err) {
+    logger.error(`获取邮箱、安全码和解压密码失败: ${err}`);
+    res.status(500).json({ success: false, message: '获取邮箱、安全码和解压密码失败', error: err.message });
   }
 });
 

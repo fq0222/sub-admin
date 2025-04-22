@@ -258,6 +258,23 @@
       </div>
       <button onclick="setAdmin()">创建管理员</button>
       <button onclick="updateAdmin()">修改管理员密码</button>
+
+      <div class="form-group">
+        <h3>配置发送邮件的邮箱和安全码</h3>
+        <label>邮箱地址:</label>
+        <input id="emailConfig" type="email" placeholder="请输入邮箱地址" />
+      </div>
+      <div class="form-group">
+        <label>安全码:</label>
+        <input id="authCodeConfig" type="password" placeholder="请输入安全码" />
+      </div>
+      <div class="form-group">
+        <label>解压密码:</label>
+        <input id="passwordConfig" type="text" placeholder="请输入解压密码" />
+      </div>
+      <button onclick="setEmailConfig()">保存配置</button>
+      <button onclick="getEmailConfig()">获取配置</button>
+      <div id="emailConfigResult" style="margin-top: 10px; color: green;"></div>
     </div>
   </div>
 
@@ -409,6 +426,56 @@
           alert('管理员密码修改成功');
         } else {
           alert('修改失败: ' + data.message);
+        }
+      } catch (err) {
+        alert('请求失败: ' + err.message);
+      }
+    }
+
+    async function setEmailConfig() {
+      const email = document.getElementById('emailConfig').value;
+      const authCode = document.getElementById('authCodeConfig').value;
+      const password = document.getElementById('passwordConfig').value;
+
+      if (!email || !authCode || !password) {
+        alert('邮箱地址、安全码和解压密码不能为空！');
+        return;
+      }
+
+      try {
+        const res = await fetch('/admin/set-email', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ email, authCode, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('emailConfigResult').textContent = '配置保存成功！';
+        } else {
+          document.getElementById('emailConfigResult').textContent = '配置保存失败: ' + data.message;
+        }
+      } catch (err) {
+        alert('请求失败: ' + err.message);
+      }
+    }
+
+    async function getEmailConfig() {
+      try {
+        const res = await fetch('/admin/get-sendemail', { headers });
+        const data = await res.json();
+        if (data.success) {
+          const emailConfigResult = document.getElementById('emailConfigResult');
+          emailConfigResult.textContent = '当前配置:';
+          emailConfigResult.style.color = 'black';
+          emailConfigResult.innerHTML = data.data
+            .map(item => `
+              <p>邮箱: ${item.email}</p>
+              <p>安全码: ${item.authCode}</p>
+              <p>解压密码: ${item.password}</p>
+            `)
+            .join('');
+        } else {
+          alert('获取配置失败: ' + data.message);
         }
       } catch (err) {
         alert('请求失败: ' + err.message);
@@ -612,9 +679,32 @@
       }
     }
 
-    function openSendEmailDialog(email) {
-      document.getElementById('toEmail').value = email; // 自动填充收件人邮箱
-      document.getElementById('sendEmailDialog').showModal();
+    async function openSendEmailDialog(email) {
+      try {
+        // 自动填充收件人邮箱
+        document.getElementById('toEmail').value = email;
+
+        // 从后端获取发送邮箱的地址、安全码和解压密码
+        const res = await fetch('/admin/get-sendemail', { headers });
+        const data = await res.json();
+
+        if (data.success && data.data.length > 0) {
+          // 使用第一个配置作为默认值
+          const { email: fromEmail, authCode, password } = data.data[0];
+
+          // 自动填充发件人邮箱、安全码和解压密码
+          document.getElementById('fromEmail').value = fromEmail;
+          document.getElementById('authCode').value = authCode;
+          document.getElementById('emailPassword').value = password;
+        } else {
+          alert('未找到发送邮箱的配置，请先配置发送邮箱！');
+        }
+
+        // 显示对话框
+        document.getElementById('sendEmailDialog').showModal();
+      } catch (err) {
+        alert('获取发送邮箱配置失败: ' + err.message);
+      }
     }
 
     function closeSendEmailDialog() {
