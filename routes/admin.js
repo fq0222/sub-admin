@@ -52,10 +52,17 @@ router.put('/update/:id', async (req, res) => {
 
 // 查询指定邮箱节点
 router.get('/search', async (req, res) => {
+  const { email, isSold, priceMin, priceMax } = req.query;
+  const filter = {};
+
+  if (email) filter.email = email;
+  if (isSold) filter.isSold = isSold === 'true';
+  if (priceMin) filter.price = { ...filter.price, $gte: parseFloat(priceMin) };
+  if (priceMax) filter.price = { ...filter.price, $lte: parseFloat(priceMax) };
+
   try {
-    const { email } = req.query;
-    const list = await NodeInfo.find({ email });
-    res.json({ success: true, data: list });
+    const nodes = await NodeInfo.find(filter);
+    res.json({ success: true, data: nodes });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

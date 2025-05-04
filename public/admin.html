@@ -188,10 +188,23 @@
         <label>邮箱:</label>
         <input id="searchEmail" type="text" placeholder="输入邮箱进行查询" />
       </div>
+      <div class="form-group">
+        <label>是否售出:</label>
+        <select id="searchIsSold">
+          <option value="">全部</option>
+          <option value="true">是</option>
+          <option value="false">否</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>价格范围:</label>
+        <input id="searchPriceMin" type="number" placeholder="最低价格" />
+        <input id="searchPriceMax" type="number" placeholder="最高价格" />
+      </div>
       <button onclick="searchNode()">查询节点</button>
 
       <!-- 查询结果表格 -->
-      <h4>查询结果</h4>
+      <h4>查询结果 <span id="resultsCount">(0 条结果)</span></h4>
       <table>
         <thead>
           <tr>
@@ -199,9 +212,10 @@
             <th>节点信息</th>
             <th>起始时间</th>
             <th>到期时间</th>
-            <th>服务器</th> <!-- 新增服务器列 -->
-            <th>是否售出</th> <!-- 新增 -->
-            <th>价格</th> <!-- 新增 -->
+            <th>服务器</th>
+            <th>是否售出</th>
+            <th>价格</th>
+            <th>操作</th> <!-- 新增操作列 -->
           </tr>
         </thead>
         <tbody id="searchResultsTable"></tbody>
@@ -575,7 +589,7 @@
         row.innerHTML = `
           <td>${node.email}</td>
           <td>
-            <span class="short-vless">${node.vlessList.slice(0, 60)}...</span>
+            <span class="short-vless">${node.vlessList.slice(0, 45)}...</span>
             <button onclick="copyToClipboard(decodeURIComponent('${encodedVlessList}'))">复制</button>
           </td>
           <td>${new Date(node.startTime).toLocaleString()}</td>
@@ -810,14 +824,20 @@
     }
 
     async function searchNode() {
-      const email = document.getElementById('searchEmail').value;
-      if (!email) {
-        alert('请输入邮箱进行查询');
-        return;
-      }
+      const email = document.getElementById('searchEmail').value.trim();
+      const isSold = document.getElementById('searchIsSold').value; // 获取是否售出
+      const priceMin = document.getElementById('searchPriceMin').value.trim(); // 获取最低价格
+      const priceMax = document.getElementById('searchPriceMax').value.trim(); // 获取最高价格
+
+      // 构造查询参数
+      const queryParams = new URLSearchParams();
+      if (email) queryParams.append('email', email);
+      if (isSold) queryParams.append('isSold', isSold);
+      if (priceMin) queryParams.append('priceMin', priceMin);
+      if (priceMax) queryParams.append('priceMax', priceMax);
 
       try {
-        const res = await fetch(`/admin/search?email=${email}`, { headers });
+        const res = await fetch(`/admin/search?${queryParams.toString()}`, { headers });
         const data = await res.json();
         if (data.success) {
           renderSearchResults(data.data);
@@ -831,13 +851,19 @@
 
     function renderSearchResults(data) {
       const searchResultsTable = document.getElementById('searchResultsTable');
+      const resultsCount = document.getElementById('resultsCount'); // 获取结果条数的显示元素
       searchResultsTable.innerHTML = '';
+
+      // 更新结果条数
+      resultsCount.textContent = `(${data.length} 条结果)`;
+
       data.forEach(node => {
+        const encodedVlessList = encodeURIComponent(node.vlessList);
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${node.email}</td>
           <td>
-            <span class="short-vless">${node.vlessList.slice(0, 60)}...</span>
+            <span class="short-vless">${node.vlessList.slice(0, 45)}...</span>
             <button onclick="copyToClipboard('${node.vlessList.replace(/'/g, "\\'")}')">复制</button>
           </td>
           <td>${new Date(node.startTime).toLocaleString()}</td>
@@ -845,6 +871,12 @@
           <td>${node.server || '未指定'}</td>
           <td>${node.isSold ? '是' : '否'}</td> <!-- 显示是否售出 -->
           <td>${node.price || '未设置'}</td> <!-- 显示价格 -->
+          <td>
+            <button onclick="deleteNode('${node._id}')">删除</button>
+            <button onclick="editNode('${node._id}', '${node.email}', '${encodedVlessList}', '${node.startTime}', '${node.endTime}', '${node.server}', ${node.isSold}, ${node.price})">修改</button>
+            <button onclick="generateSubscribeLink('${node.email}')">订阅链接</button>
+            <button onclick="openSendEmailDialog('${node.email}')">发送邮件</button>
+          </td>
         `;
         searchResultsTable.appendChild(row);
       });
