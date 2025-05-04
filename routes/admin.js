@@ -242,7 +242,7 @@ router.post('/send-email', async (req, res) => {
     // 拼接邮件内容
     const mail = {
       to,
-      subject: '订阅链接和解压密码',
+      subject: '光链通道',
       text: '',
       html: `
         <h3>感谢您的支持！</h3>
@@ -253,7 +253,8 @@ router.post('/send-email', async (req, res) => {
           <li><strong>节点结束时间：</strong> ${new Date(endTime).toLocaleString()}</li>
           <li><strong>网盘资料解压密码：</strong> ${password}</li>
         </ul>
-        <p>如有问题，请随时联系我们, QQ: 2308273365</p>
+        <p>如有问题，请随时联系我们, VX: q1195679943; 清备注：[光链通道]，否则不会通过验证</p>
+        <p>Telegram电报频道: <a href="https://t.me/LightRoute_9527" target="_blank">https://t.me/LightRoute_9527</a> 加入频道，收取最新通知和活动</p>
       `,
       imagePaths: [] // 如果需要发送图片，可以在这里添加图片路径
     };
