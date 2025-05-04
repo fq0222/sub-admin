@@ -8,6 +8,8 @@ const logger = require('./log/logger');
 const adminRouter = require('./routes/admin');
 const loginRouter = require('./routes/login');
 const subRouter = require('./routes/subscribe');
+const emailRouter = require('./routes/email');
+const notifyPayRouter = require('./routes/pay');
 
 
 const PORT = process.env.PORT || 12111;
@@ -38,6 +40,8 @@ app.use(express.static(path.join(__dirname, 'public'), {
 app.use('/admin', adminRouter);
 app.use(loginRouter);
 app.use(subRouter);
+app.use(emailRouter);
+app.use(notifyPayRouter);
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'nginx.html'));

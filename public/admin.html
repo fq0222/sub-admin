@@ -141,6 +141,7 @@
     <button onclick="showSection('searchNodeSection')">查询节点</button>
     <button onclick="showSection('nodeListSection')">节点列表</button>
     <button onclick="showSection('vlessGeneratorSection')">VLESS 节点生成器</button>
+    <button onclick="showSection('notifyPaySection')">发送支付通知</button>
     <button onclick="showSection('settingsSection')">设置</button>
   </div>
 
@@ -271,6 +272,23 @@
       <pre id="output"></pre>
     </div>
 
+    <!-- 发送支付通知 -->
+    <div id="notifyPaySection" class="section" style="display: none;">
+      <h3>发送支付通知</h3>
+      <form id="notifyPayForm">
+        <div class="form-group">
+          <label>邮箱:</label>
+          <input id="notifyEmail" type="email" placeholder="请输入用户邮箱" required />
+        </div>
+        <div class="form-group">
+          <label>价格:</label>
+          <input id="notifyPrice" type="number" placeholder="请输入价格" required />
+        </div>
+        <div class="form-group">
+          <button type="button" onclick="sendNotifyPay()">发送通知</button>
+        </div>
+      </form>
+    </div>
 
     <!-- 设置 -->
     <div id="settingsSection" class="section" style="display: none;">
@@ -624,6 +642,45 @@
       });
     }
 
+    async function sendNotifyPay() {
+      const email = document.getElementById('notifyEmail').value.trim();
+      const priceInput = document.getElementById('notifyPrice').value.trim();
+      const price = parseFloat(priceInput);
+
+      // 检查必填字段
+      if (!email || priceInput === '') {
+        alert('邮箱和价格不能为空！');
+        return;
+      }
+
+      // 检查价格是否为有效数字
+      if (isNaN(price) || price <= 0) {
+        alert('价格必须为正数！');
+        return;
+      }
+
+      try {
+        const res = await fetch('/notify-pay', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ email, price })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          alert('支付通知发送成功！');
+          document.getElementById('notifyPayForm').reset(); // 重置表单
+        } else {
+          alert('发送失败: ' + data.message);
+        }
+      } catch (err) {
+        alert('请求失败: ' + err.message);
+      }
+    }
+
     async function addNode() {
       const email = document.getElementById('email').value.trim(); // 去除多余空格
       const vlessList = document.getElementById('vlessList').value.trim();
@@ -687,8 +744,27 @@
     function openEditDialog(node) {
       document.getElementById('editEmail').value = node.email;
       document.getElementById('editVlessList').value = node.vlessList;
-      document.getElementById('editStartTime').value = new Date(node.startTime).toISOString().slice(0, 16);
-      document.getElementById('editEndTime').value = new Date(node.endTime).toISOString().slice(0, 16);
+
+      // 将时间转换为本地时间格式
+      const startTime = new Date(node.startTime);
+      const endTime = new Date(node.endTime);
+
+      // 格式化为 datetime-local 所需的格式 (YYYY-MM-DDTHH:mm)
+      const formattedStartTime = startTime.getFullYear() +
+        '-' + String(startTime.getMonth() + 1).padStart(2, '0') +
+        '-' + String(startTime.getDate()).padStart(2, '0') +
+        'T' + String(startTime.getHours()).padStart(2, '0') +
+        ':' + String(startTime.getMinutes()).padStart(2, '0');
+
+      const formattedEndTime = endTime.getFullYear() +
+        '-' + String(endTime.getMonth() + 1).padStart(2, '0') +
+        '-' + String(endTime.getDate()).padStart(2, '0') +
+        'T' + String(endTime.getHours()).padStart(2, '0') +
+        ':' + String(endTime.getMinutes()).padStart(2, '0');
+
+      document.getElementById('editStartTime').value = formattedStartTime;
+      document.getElementById('editEndTime').value = formattedEndTime;
+
       document.getElementById('editServer').value = node.server || ''; // 如果 server 未定义，则设置为空字符串
       document.getElementById('editIsSold').checked = node.isSold; // 设置是否售出
       document.getElementById('editPrice').value = node.price || ''; // 设置价格
@@ -783,7 +859,7 @@
       }
 
       try {
-        const res = await fetch('/admin/send-email', {
+        const res = await fetch('/send-email', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
