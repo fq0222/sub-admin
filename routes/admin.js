@@ -17,8 +17,8 @@ router.use(authenticate);
 // 添加节点
 router.post('/add', async (req, res) => {
   try {
-    const { email, vlessList, startTime, endTime, server } = req.body; // 接收 server 字段
-    const node = new NodeInfo({ email, vlessList, startTime, endTime, server }); // 保存 server 字段
+    const { email, vlessList, startTime, endTime, server, isSold, price } = req.body; // 接收新增字段
+    const node = new NodeInfo({ email, vlessList, startTime, endTime, server, isSold, price }); // 保存新增字段
     await node.save();
     res.json({ success: true, message: '添加成功' });
   } catch (err) {
@@ -39,10 +39,10 @@ router.delete('/delete/:id', async (req, res) => {
 // 修改节点
 router.put('/update/:id', async (req, res) => {
   try {
-    const { email, vlessList, startTime, endTime, server } = req.body; // 接收 server 字段
-    logger.info(`/update email: ${email}, vlessList: ${vlessList.slice(0, 10)}, startTime: ${startTime}, endTime: ${endTime}, server: ${server}`);
+    const { email, vlessList, startTime, endTime, server, isSold, price } = req.body; // 接收新增字段
+    logger.info(`/update email: ${email}, vlessList: ${vlessList.slice(0, 10)}, startTime: ${startTime}, endTime: ${endTime}, server: ${server}, isSold: ${isSold}, price: ${price}`);
     await NodeInfo.findByIdAndUpdate(req.params.id, {
-      email, vlessList, startTime, endTime, server // 更新 server 字段
+      email, vlessList, startTime, endTime, server, isSold, price // 更新新增字段
     });
     res.json({ success: true, message: '修改成功' });
   } catch (err) {
