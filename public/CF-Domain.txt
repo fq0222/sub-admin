@@ -3,6 +3,5 @@ visa.com
 visa.fi
 ping.pe
 russia.com
-japan.com
 dynadot.com
 digitalocean.com
