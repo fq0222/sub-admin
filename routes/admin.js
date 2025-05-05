@@ -9,7 +9,6 @@ const logger = require('../log/logger');
 const path = require('path');
 const crypto = require('crypto'); // 引入 crypto 模块
 const SendEmail = require('../models/SendEmail'); // 引入 SendEmail 模型
-const moment = require('moment-timezone'); // 引入 moment-timezone
 
 // 所有接口都加上鉴权中间件
 router.use(authenticate);
@@ -18,10 +17,8 @@ router.use(authenticate);
 router.post('/add', async (req, res) => {
   try {
     const { email, vlessList, startTime, endTime, server, isSold, price } = req.body; // 接收新增字段
-    // 将时间转换为中国时区
-    const startTimeInChina = moment(startTime).tz('Asia/Shanghai').toDate();
-    const endTimeInChina = moment(endTime).tz('Asia/Shanghai').toDate();
-    const node = new NodeInfo({ email, vlessList, startTimeInChina, endTimeInChina, server, isSold, price }); // 保存新增字段
+
+    const node = new NodeInfo({ email, vlessList, startTime, endTime, server, isSold, price }); // 保存新增字段
     await node.save();
     res.json({ success: true, message: '添加成功' });
   } catch (err) {
@@ -43,12 +40,10 @@ router.delete('/delete/:id', async (req, res) => {
 router.put('/update/:id', async (req, res) => {
   try {
     const { email, vlessList, startTime, endTime, server, isSold, price } = req.body; // 接收新增字段
-    // 将时间转换为中国时区
-    const startTimeInChina = moment(startTime).tz('Asia/Shanghai').toDate();
-    const endTimeInChina = moment(endTime).tz('Asia/Shanghai').toDate();
-    logger.info(`/update email: ${email}, vlessList: ${vlessList.slice(0, 10)}, startTime: ${startTimeInChina}, endTime: ${endTimeInChina}, server: ${server}, isSold: ${isSold}, price: ${price}`);
+
+    logger.info(`/update email: ${email}, vlessList: ${vlessList.slice(0, 10)}, startTime: ${startTime}, endTime: ${endTime}, server: ${server}, isSold: ${isSold}, price: ${price}`);
     await NodeInfo.findByIdAndUpdate(req.params.id, {
-      email, vlessList, startTimeInChina, endTimeInChina, server, isSold, price // 更新新增字段
+      email, vlessList, startTime, endTime, server, isSold, price // 更新新增字段
     });
     res.json({ success: true, message: '修改成功' });
   } catch (err) {
