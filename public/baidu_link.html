@@ -134,27 +134,7 @@
       </p>
       <p><span class="emoji">🔑</span> 提取码：<strong>fufe</strong></p>
     </div>
-    <div class="qr-section">
-      <span>（获取资料解压密码和订阅链接请点击）</span>
-      <button onclick="showQRCode()">微信支付获取</button>
-      <p id="qrHint" class="highlight" style="display: none;">请在扫码支付时填写您的邮箱，支付完成后会向您的邮箱发送相关信息</p>
-      
-      <div class="image-row">
-        <img id="example" src="pay/pay_example.jpg" alt="示例" style="display: none;">
-        <img id="wechatQRCode" class="centered-img" src="pay/wechat_pay.jpg" alt="微信支付二维码" style="display: none;">
-      </div>
-    </div>
   </div>
 
-  <script>
-    function showQRCode() {
-      const qrExample = document.getElementById('example');
-      const qrCode = document.getElementById('wechatQRCode');
-      const qrHint = document.getElementById('qrHint');
-      qrExample.style.display = 'block';
-      qrCode.style.display = 'block';
-      qrHint.style.display = 'block';
-    }
-  </script>
 </body>
 </html>

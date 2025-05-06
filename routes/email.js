@@ -9,8 +9,8 @@ const { sendEmail } = require('../mail/emailSender');
 // 所有接口都加上鉴权中间件
 router.use(authenticate);
 
-// 添加 /send-email 接口
-router.post('/send-email', async (req, res) => {
+// 添加 /sub-email 接口
+router.post('/sub-email', async (req, res) => {
     const { user, pass, to, password } = req.body; // 增加解压密码参数
 
     if (!user || !pass || !to || !password) {

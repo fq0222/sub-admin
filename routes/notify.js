@@ -1,4 +1,4 @@
-// routes/pay.js
+// routes/notify.js
 const express = require('express');
 const router = express.Router();
 const NodeInfo = require('../models/NodeInfo');
@@ -11,8 +11,8 @@ const moment = require('moment-timezone'); // 引入 moment-timezone
 // 所有接口都加上鉴权中间件
 router.use(authenticate);
 
-// 添加 /notify_pay 接口
-router.post('/notify-pay', async (req, res) => {
+// 添加 /pay 接口
+router.post('/pay', async (req, res) => {
     try {
         const { email, price } = req.body;
 
@@ -57,9 +57,9 @@ router.post('/notify-pay', async (req, res) => {
         let decryptedAuthCode = decipher.update(encryptedData, 'hex', 'utf8');
         decryptedAuthCode += decipher.final('utf8');
 
-        const sendEmailUrl = `http://localhost:${process.env.PORT || 12111}/send-email`;
+        const sendEmailUrl = `http://localhost:${process.env.PORT || 12111}/send/sub-email`;
 
-        // 调用 /send-email 接口发送邮件
+        // 调用 /send/sub-email 接口发送邮件
         const emailResponse = await fetch(sendEmailUrl, {
             method: 'POST',
             headers: {

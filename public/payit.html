@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>支付</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .payment-section {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .payment-box {
+      width: 48%;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background-color: #fefefe;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .payment-box h2 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .payment-box p {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .pay-button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .pay-button:hover {
+      background-color: #0056b3;
+    }
+
+    .qr-code {
+      margin-top: 20px;
+    }
+
+    .qr-code img {
+      width: 150px;
+      height: 150px;
+    }
+
+    .query-section {
+      margin-top: 20px;
+    }
+
+    .query-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .query-box input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .query-button {
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .query-button:hover {
+      background-color: #218838;
+    }
+
+    .query-result {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #fefefe;
+    }
+
+    .query-result p {
+      margin: 5px 0;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>支付</h1>
+
+    <!-- 支付选项 -->
+    <div class="payment-section">
+      <!-- 第一个支付选项 -->
+      <div class="payment-box">
+        <h2>15/月 300G</h2>
+        <p>扫码支付时，一定要填写可接受邮件的邮箱。</p>
+        <button class="pay-button" onclick="showQRCode(15)">微信支付</button>
+        <div class="qr-code" id="qrCode15" style="display: none;">
+          <img src="/pay/pay_mini_15.jpg" alt="二维码">
+        </div>
+      </div>
+
+      <!-- 第二个支付选项 -->
+      <div class="payment-box">
+        <h2>50/500G 不限时</h2>
+        <p>扫码支付时，一定要填写可接受邮件的邮箱。</p>
+        <button class="pay-button" onclick="showQRCode(50)">微信支付</button>
+        <div class="qr-code" id="qrCode50" style="display: none;">
+          <img src="/pay/pay_mini_50.jpg" alt="二维码">
+        </div>
+      </div>
+    </div>
+
+    <!-- 邮箱查询 -->
+    <div class="query-section">
+      <h2>查询信息</h2>
+      <div class="query-box">
+        <label for="email">邮箱:</label>
+        <input type="email" id="email" placeholder="请输入邮箱">
+        <button class="query-button" onclick="queryInfo()">查询</button>
+      </div>
+      <div class="query-result" id="queryResult">
+        <!-- 查询结果展示 -->
+        <p>过期时间: <span id="expiryDate">-</span></p>
+        <p>流量: <span id="traffic">-</span></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function showQRCode(price) {
+      try {
+        // 向后端请求剩余节点数量
+        const res = await fetch('/query/unsold-nodes');
+        const data = await res.json();
+
+        if (!data.success) {
+          alert('无法获取库存信息，请稍后再试！');
+          return;
+        }
+
+        // 根据价格判断库存
+        const hasStock = price === 15 ? data.data.price15 > 0 : data.data.price50 > 0;
+
+        if (hasStock) {
+          const qrCodeId = price === 15 ? 'qrCode15' : 'qrCode50';
+          document.getElementById(qrCodeId).style.display = 'block';
+        } else {
+          alert('当前售价的节点已售罄！');
+        }
+      } catch (err) {
+        alert('请求失败，请检查网络连接！');
+        console.error('Error fetching unsold nodes:', err);
+      }
+    }
+
+    async function queryInfo() {
+        const email = document.getElementById('email').value.trim();
+
+        if (!email) {
+            alert('请输入邮箱！');
+            return;
+        }
+
+        try {
+            // 调用后端接口查询节点信息
+            const res = await fetch(`/query/node-info?email=${encodeURIComponent(email)}`);
+            const data = await res.json();
+
+            if (data.success) {
+                // 格式化到期时间
+                const expiryDate = data.data.expiryDate
+                    ? new Date(data.data.expiryDate).toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    }).replace(/\//g, '-') // 替换斜杠为短横线
+                    : '-';
+
+                // 更新查询结果
+                document.getElementById('expiryDate').textContent = expiryDate;
+                document.getElementById('traffic').textContent = data.data.traffic || '未实现';
+            } else {
+                alert('查询失败: ' + data.message);
+            }
+        } catch (err) {
+            alert('请求失败，请检查网络连接！');
+            console.error('Error querying info:', err);
+        }
+    }
+  </script>
+</body>
+</html>

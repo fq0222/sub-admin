@@ -9,7 +9,8 @@ const adminRouter = require('./routes/admin');
 const loginRouter = require('./routes/login');
 const subRouter = require('./routes/subscribe');
 const emailRouter = require('./routes/email');
-const notifyPayRouter = require('./routes/pay');
+const notifyRouter = require('./routes/notify');
+const queryRouter = require('./routes/query');
 
 
 const PORT = process.env.PORT || 12111;
@@ -35,21 +36,27 @@ app.use(express.static(path.join(__dirname, 'public'), {
   }
 }));
 
-
-// 路由
-app.use('/admin', adminRouter);
-app.use(loginRouter);
-app.use(subRouter);
-app.use(emailRouter);
-app.use(notifyPayRouter);
-
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'nginx.html'));
+  res.sendFile(path.join(__dirname, 'public', 'nginx.html'));
 });
 
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
+
+app.get('/payit', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'payit.html'));
+});
+
+// 路由
+app.use('/login', loginRouter);
+app.use("/query", queryRouter);
+app.use('/sub', subRouter);
+// 以下需要鉴权
+app.use('/admin', adminRouter);
+app.use('/send', emailRouter);
+app.use('/notify', notifyRouter);
+
 
 app.listen(PORT, () => {
   logger.info(`Server is running on http://localhost:${PORT}`);

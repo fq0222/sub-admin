@@ -3,9 +3,12 @@ const express = require('express');
 const router = express.Router();
 const NodeInfo = require('../models/NodeInfo');
 const logger = require('../log/logger');
+const { rateLimiter } = require('../mid/limiter');
+
+router.use(rateLimiter);
 
 // 订阅节点 ; charset=utf-8
-router.get('/sub', async (req, res) => {
+router.get('/', async (req, res) => {
     const { email } = req.query;
     logger.info(`/sub subscribe email: ${email}`);
     
