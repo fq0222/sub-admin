@@ -216,7 +216,9 @@
             <th>服务器</th>
             <th>是否售出</th>
             <th>价格</th>
-            <th>操作</th> <!-- 新增操作列 -->
+            <th>已用流量 (GB)</th> <!-- 新增 -->
+            <th>总流量 (GB)</th> <!-- 新增 -->
+            <th>操作</th>
           </tr>
         </thead>
         <tbody id="searchResultsTable"></tbody>
@@ -234,8 +236,10 @@
             <th>起始时间</th>
             <th>到期时间</th>
             <th>服务器</th>
-            <th>是否售出</th> <!-- 新增 -->
-            <th>价格</th> <!-- 新增 -->
+            <th>是否售出</th>
+            <th>价格</th>
+            <th>已用流量 (GB)</th> <!-- 新增 -->
+            <th>总流量 (GB)</th> <!-- 新增 -->
             <th>操作</th>
           </tr>
         </thead>
@@ -613,11 +617,13 @@
           <td>${new Date(node.startTime).toLocaleString()}</td>
           <td>${new Date(node.endTime).toLocaleString()}</td>
           <td>${node.server || '未指定'}</td>
-          <td>${node.isSold ? '是' : '否'}</td> <!-- 显示是否售出 -->
-          <td>${node.price || '未设置'}</td> <!-- 显示价格 -->
+          <td>${node.isSold ? '是' : '否'}</td>
+          <td>${node.price || '未设置'}</td>
+          <td>${(node.usedTraffic / (1024 ** 3)).toFixed(2)} GB</td> <!-- 已用流量 -->
+          <td>${(node.totalTraffic / (1024 ** 3)).toFixed(2)} GB</td> <!-- 总流量 -->
           <td>
             <button onclick="deleteNode('${node._id}')">删除</button>
-            <button onclick="editNode('${node._id}', '${node.email}', '${encodedVlessList}', '${node.startTime}', '${node.endTime}', '${node.server}', ${node.isSold}, ${node.price})">修改</button>
+            <button onclick="editNode('${node._id}', '${node.email}', '${encodedVlessList}', '${node.startTime}', '${node.endTime}', '${node.server}', ${node.isSold}, ${node.price}, ${node.usedTraffic}, ${node.totalTraffic})">修改</button>
             <button onclick="generateSubscribeLink('${node.email}')">订阅链接</button>
             <button onclick="openSendEmailDialog('${node.email}')">发送邮件</button>
           </td>
@@ -945,11 +951,13 @@
           <td>${new Date(node.startTime).toLocaleString()}</td>
           <td>${new Date(node.endTime).toLocaleString()}</td>
           <td>${node.server || '未指定'}</td>
-          <td>${node.isSold ? '是' : '否'}</td> <!-- 显示是否售出 -->
-          <td>${node.price || '未设置'}</td> <!-- 显示价格 -->
+          <td>${node.isSold ? '是' : '否'}</td>
+          <td>${node.price || '未设置'}</td>
+          <td>${(node.usedTraffic / (1024 ** 3)).toFixed(2)} GB</td> <!-- 已用流量 -->
+          <td>${(node.totalTraffic / (1024 ** 3)).toFixed(2)} GB</td> <!-- 总流量 -->
           <td>
             <button onclick="deleteNode('${node._id}')">删除</button>
-            <button onclick="editNode('${node._id}', '${node.email}', '${encodedVlessList}', '${node.startTime}', '${node.endTime}', '${node.server}', ${node.isSold}, ${node.price})">修改</button>
+            <button onclick="editNode('${node._id}', '${node.email}', '${encodedVlessList}', '${node.startTime}', '${node.endTime}', '${node.server}', ${node.isSold}, ${node.price}, ${node.usedTraffic}, ${node.totalTraffic})">修改</button>
             <button onclick="generateSubscribeLink('${node.email}')">订阅链接</button>
             <button onclick="openSendEmailDialog('${node.email}')">发送邮件</button>
           </td>

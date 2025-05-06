@@ -46,7 +46,7 @@ router.get('/node-info', async (req, res) => {
 
     try {
         // 查询数据库中与邮箱匹配的节点信息
-        const node = await NodeInfo.findOne({ email, isSold: true }).select('endTime');
+        const node = await NodeInfo.findOne({ email, isSold: true }).select('endTime usedTraffic totalTraffic');
 
         if (!node) {
             return res.status(404).json({
@@ -55,12 +55,16 @@ router.get('/node-info', async (req, res) => {
             });
         }
 
+        // 将流量从字节转换为 GB
+        const usedTrafficGB = (node.usedTraffic / (1024 ** 3)).toFixed(2); // 保留两位小数
+        const totalTrafficGB = (node.totalTraffic / (1024 ** 3)).toFixed(2); // 保留两位小数
+
         // 返回节点信息
         res.json({
             success: true,
             data: {
                 expiryDate: node.endTime, // 到期时间
-                traffic: '未实现' // 流量信息占位
+                traffic: `${usedTrafficGB} GB / ${totalTrafficGB} GB` // 流量信息
             }
         });
     } catch (err) {

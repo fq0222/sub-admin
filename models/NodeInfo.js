@@ -8,7 +8,9 @@ const nodeInfoSchema = new mongoose.Schema({
   endTime: { type: Date, required: true },
   server: { type: String, required: false }, // 新增字段，用于标识节点所在的服务器
   isSold: { type: Boolean, default: false }, // 新增字段，标记是否售出
-  price: { type: Number, required: false } // 新增字段，标记节点价格
+  price: { type: Number, required: false }, // 新增字段，标记节点价格
+  usedTraffic: { type: Number, default: 0 }, // 新增字段，已使用流量（字节）
+  totalTraffic: { type: Number, default: 0 } // 新增字段，总流量（字节）
 });
 
 module.exports = mongoose.model('NodeInfo', nodeInfoSchema);
