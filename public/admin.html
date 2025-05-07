@@ -610,7 +610,7 @@
       data.forEach(node => {
         const encodedVlessList = encodeURIComponent(node.vlessList);
         const trafficUpdateTime = node.trafficUpdateTime
-          ? new Date(node.trafficUpdateTime).toLocaleString('zh-CN', { hour12: false })
+          ? new Date(node.trafficUpdateTime).toLocaleString()
           : '未更新'; // 格式化时间或显示占位符
 
         const row = document.createElement('tr');
@@ -949,7 +949,7 @@
       data.forEach(node => {
         const encodedVlessList = encodeURIComponent(node.vlessList);
         const trafficUpdateTime = node.trafficUpdateTime
-          ? new Date(node.trafficUpdateTime).toLocaleString('zh-CN', { hour12: false })
+          ? new Date(node.trafficUpdateTime).toLocaleString()
           : '未更新'; // 格式化时间或显示占位符
 
         const row = document.createElement('tr');
