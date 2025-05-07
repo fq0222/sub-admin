@@ -34,6 +34,7 @@ async function queryFlow() {
         // 遍历 emailList，向指定 URL 发送请求
         for (const email of emailList) {
             try {
+                logger.info(`xui_url : ${xui_url}`);
                 // 使用 fetch 替代 axios
                 const response = await fetch(`${xui_url}/flow/${email}/flow`);
                 if (!response.ok) {
