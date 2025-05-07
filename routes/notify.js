@@ -8,8 +8,46 @@ const logger = require('../log/logger');
 const SendEmail = require('../models/SendEmail'); // 引入 SendEmail 模型
 const moment = require('moment-timezone'); // 引入 moment-timezone
 
+
+const xuiUrl = process.env.XUI_URL || 'http://localhost:21211/xuiop';
+
 // 所有接口都加上鉴权中间件
 router.use(authenticate);
+
+function extractUUIDFromVlessList(vlessList) {
+    const lines = vlessList.trim().split('\n');
+    const firstVless = lines.find(line => line.startsWith('vless://'));
+  
+    if (!firstVless) return null;
+  
+    const afterProtocol = firstVless.split('vless://')[1];
+    const uuid = afterProtocol.split('@')[0];
+  
+    return uuid;
+}
+  
+
+const updateEmail = async (id, email) => {
+    try {
+        const response = await fetch(`${xuiUrl}/uuid/${id}/email`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            logger.info(`更新成功: ${id}-${email}`);
+        } else {
+            logger.error(`更新失败: ${id}-${email}`);
+        }
+    } catch (err) {
+        logger.error(`请求异常: ${err.message}`);
+    }
+};
 
 // 添加 /pay 接口
 router.post('/pay', async (req, res) => {
@@ -38,6 +76,13 @@ router.post('/pay', async (req, res) => {
         node.startTime = currentTime; // 设置起始时间为当前时间
         node.endTime = endTime; // 设置结束时间为31天后
         await node.save();
+
+        // 从 NodeInfo 中获取 uuid
+        const uuid = extractUUIDFromVlessList(node.vlessList);
+        logger.info(`提取到的 UUID: ${uuid}`);
+
+        // 向xui服务器发送请求，更新uuid对应的节点的email信息
+        updateEmail(uuid, email);
 
         // 从 SendEmail 数据库中获取发件人信息
         const sendEmailInfo = await SendEmail.findOne();

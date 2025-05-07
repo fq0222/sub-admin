@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>VMess 节点批量生成器</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    textarea, input { width: 100%; margin: 10px 0; padding: 8px; }
+    button { padding: 10px 20px; margin-top: 10px; }
+    pre { background: #f3f3f3; padding: 10px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h2>VMess 节点批量替换工具</h2>
+
+  <label>原始 vmess 节点链接：</label>
+  <textarea id="original" rows="4" placeholder="vmess://..."></textarea>
+
+  <label>新 ID (UUID)：</label>
+  <input type="text" id="newId" placeholder="如：12345678-90ab-cdef-1234-567890abcdef">
+
+  <label>服务器地址列表（每行一个）：</label>
+  <textarea id="serverList" rows="5" placeholder="server1.example.com&#10;server2.example.com"></textarea>
+
+  <button onclick="generate()">生成新 VMess 节点</button>
+
+  <h3>生成结果：</h3>
+  <pre id="output"></pre>
+
+  <script>
+    function generate() {
+        const original = document.getElementById("original").value.trim();
+        const newId = document.getElementById("newId").value.trim();
+        const servers = document.getElementById("serverList").value.trim().split("\n").filter(Boolean);
+        const output = document.getElementById("output");
+
+        if (!original.startsWith("vmess://")) {
+            output.textContent = "请输入有效的 vmess:// 链接。";
+            return;
+        }
+
+        try {
+            const b64 = original.slice(8);
+            // 修复 Base64 不规范的填充
+            const fixedB64 = b64.replace(/[\r\n\s]/g, ''); // 移除所有空白符
+            const decodedStr = decodeURIComponent(escape(window.atob(fixedB64.padEnd(fixedB64.length + (4 - fixedB64.length % 4) % 4, "="))));
+            const config = JSON.parse(decodedStr);
+
+            const results = servers.map(server => {
+            const newConfig = { ...config, id: newId, add: server };
+            const jsonStr = JSON.stringify(newConfig);
+            const encoded = btoa(unescape(encodeURIComponent(jsonStr))); // 支持中文
+            return "vmess://" + encoded;
+            });
+
+            output.textContent = results.join("\n");
+        } catch (err) {
+            output.textContent = "解析失败，请检查输入格式是否正确。\n错误信息：" + err.message;
+        }
+        }
+  </script>
+</body>
+</html>

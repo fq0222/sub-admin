@@ -25,6 +25,8 @@ router.post('/sub-email', async (req, res) => {
         }
 
         const { startTime, endTime } = nodeInfo;
+        const startTimeZh = new Date(startTime).toLocaleString('zh-CN', {timeZone: 'Asia/Shanghai'});
+        const endTimeZh = new Date(endTime).toLocaleString('zh-CN', {timeZone: 'Asia/Shanghai'});
 
         // 动态拼接订阅链接
         const subscribeLink = `https://subscribe.codelearning.top/sub?email=${to}`;
@@ -39,12 +41,13 @@ router.post('/sub-email', async (req, res) => {
             <p>以下是您的订阅链接和解压密码：</p>
             <ul>
             <li><strong>订阅链接：</strong> <a href="${subscribeLink}">${subscribeLink}</a></li>
-            <li><strong>节点起始时间：</strong> ${new Date(startTime).toLocaleString()}</li>
-            <li><strong>节点结束时间：</strong> ${new Date(endTime).toLocaleString()}</li>
+            <li><strong>节点起始时间：</strong> ${startTimeZh}</li>
+            <li><strong>节点结束时间：</strong> ${endTimeZh}</li>
             <li><strong>网盘资料解压密码：</strong> ${password}</li>
             </ul>
             <p>如有问题，请随时联系我们, VX: q1195679943; 清备注：[光链通道]，否则不会通过验证</p>
             <p>Telegram电报频道: <a href="https://t.me/LightRoute_9527" target="_blank">https://t.me/LightRoute_9527</a> 加入频道，收取最新通知和活动</p>
+            <p>节点信息查询地址: <a href="https://subscribe.codelearning.top/payit" target="_blank">https://subscribe.codelearning.top/payit</a> 查询剩余时间，和流量使用情况</p>
         `,
         imagePaths: [] // 如果需要发送图片，可以在这里添加图片路径
         };
