@@ -3,7 +3,7 @@ const logger = require('../log/logger');
 const NodeInfo = require('../models/NodeInfo'); // 引入 NodeInfo 模型
 const moment = require('moment-timezone'); // 引入 moment-timezone 模块
 
-const xui_url = process.env.XUI_URL || 'http://localhost:21211/xui'; // XUI 的 URL
+const xui_url = process.env.XUI_URL || 'http://localhost:21211/xuiop'; // XUI 的 URL
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
