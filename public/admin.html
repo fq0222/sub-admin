@@ -218,6 +218,7 @@
             <th>价格</th>
             <th>已用流量 (GB)</th> <!-- 新增 -->
             <th>总流量 (GB)</th> <!-- 新增 -->
+            <th>流量更新时间</th> <!-- 新增 -->
             <th>操作</th>
           </tr>
         </thead>
@@ -240,6 +241,7 @@
             <th>价格</th>
             <th>已用流量 (GB)</th> <!-- 新增 -->
             <th>总流量 (GB)</th> <!-- 新增 -->
+            <th>流量更新时间</th> <!-- 新增 -->
             <th>操作</th>
           </tr>
         </thead>
@@ -607,6 +609,10 @@
       tbody.innerHTML = '';
       data.forEach(node => {
         const encodedVlessList = encodeURIComponent(node.vlessList);
+        const trafficUpdateTime = node.trafficUpdateTime
+          ? new Date(node.trafficUpdateTime).toLocaleString('zh-CN', { hour12: false })
+          : '未更新'; // 格式化时间或显示占位符
+
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${node.email}</td>
@@ -621,6 +627,7 @@
           <td>${node.price || '未设置'}</td>
           <td>${(node.usedTraffic / (1024 ** 3)).toFixed(2)} GB</td> <!-- 已用流量 -->
           <td>${(node.totalTraffic / (1024 ** 3)).toFixed(2)} GB</td> <!-- 总流量 -->
+          <td>${trafficUpdateTime}</td> <!-- 流量更新时间 -->
           <td>
             <button onclick="deleteNode('${node._id}')">删除</button>
             <button onclick="editNode('${node._id}', '${node.email}', '${encodedVlessList}', '${node.startTime}', '${node.endTime}', '${node.server}', ${node.isSold}, ${node.price}, ${node.usedTraffic}, ${node.totalTraffic})">修改</button>
@@ -941,6 +948,10 @@
 
       data.forEach(node => {
         const encodedVlessList = encodeURIComponent(node.vlessList);
+        const trafficUpdateTime = node.trafficUpdateTime
+          ? new Date(node.trafficUpdateTime).toLocaleString('zh-CN', { hour12: false })
+          : '未更新'; // 格式化时间或显示占位符
+
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${node.email}</td>
@@ -955,6 +966,7 @@
           <td>${node.price || '未设置'}</td>
           <td>${(node.usedTraffic / (1024 ** 3)).toFixed(2)} GB</td> <!-- 已用流量 -->
           <td>${(node.totalTraffic / (1024 ** 3)).toFixed(2)} GB</td> <!-- 总流量 -->
+          <td>${trafficUpdateTime}</td> <!-- 流量更新时间 -->
           <td>
             <button onclick="deleteNode('${node._id}')">删除</button>
             <button onclick="editNode('${node._id}', '${node.email}', '${encodedVlessList}', '${node.startTime}', '${node.endTime}', '${node.server}', ${node.isSold}, ${node.price}, ${node.usedTraffic}, ${node.totalTraffic})">修改</button>

@@ -10,7 +10,8 @@ const nodeInfoSchema = new mongoose.Schema({
   isSold: { type: Boolean, default: false }, // 新增字段，标记是否售出
   price: { type: Number, required: false }, // 新增字段，标记节点价格
   usedTraffic: { type: Number, default: 0 }, // 新增字段，已使用流量（字节）
-  totalTraffic: { type: Number, default: 0 } // 新增字段，总流量（字节）
+  totalTraffic: { type: Number, default: 0 }, // 新增字段，总流量（字节）
+  trafficUpdateTime: { type: Date, default: null } // 新增字段，流量更新时间
 });
 
 module.exports = mongoose.model('NodeInfo', nodeInfoSchema);
