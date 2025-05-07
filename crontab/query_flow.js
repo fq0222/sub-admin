@@ -82,4 +82,11 @@ cron.schedule('0 */2 * * *', queryFlow);
 // cron.schedule('*/2 * * * *', queryFlow);
 logger.info('定时任务模块已加载');
 
+// 启动时立即执行一次
+setTimeout(() => {
+    // 等待5秒，等待数据库连接完成
+    logger.info('定时任务在系统启动时立即执行');
+    queryFlow();
+}, 5000);
+
 module.exports = queryFlow;
