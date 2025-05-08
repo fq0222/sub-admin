@@ -14,14 +14,14 @@ router.post('/sub-email', async (req, res) => {
     const { user, pass, to, password } = req.body; // 增加解压密码参数
 
     if (!user || !pass || !to || !password) {
-        return res.status(400).json({ success: false, message: '缺少必要参数：user, pass, to 或 password' });
+        return res.status(400).json({ success: false, message: '/sub-email 缺少必要参数：user, pass, to 或 password' });
     }
 
     try {
         // 查询用户节点信息
         const nodeInfo = await NodeInfo.findOne({ email: to });
         if (!nodeInfo) {
-            return res.status(404).json({ success: false, message: '未找到该邮箱的节点信息' });
+            return res.status(404).json({ success: false, message: '/sub-email 未找到该邮箱的节点信息' });
         }
 
         const { startTime, endTime } = nodeInfo;
@@ -54,10 +54,10 @@ router.post('/sub-email', async (req, res) => {
 
         // 调用 sendEmail 函数发送邮件
         const info = await sendEmail({ user, pass }, mail);
-        res.json({ success: true, message: '邮件发送成功', messageId: info.messageId });
+        res.json({ success: true, message: '/sub-email 邮件发送成功', messageId: info.messageId });
     } catch (err) {
-        logger.error(`邮件发送失败: ${err}`);
-        res.status(500).json({ success: false, message: '邮件发送失败', error: err.message });
+        logger.error(`/sub-email 邮件发送失败: ${err}`);
+        res.status(500).json({ success: false, message: '/sub-email 邮件发送失败', error: err.message });
     }
 });
 

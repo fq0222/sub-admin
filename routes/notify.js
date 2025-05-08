@@ -10,7 +10,7 @@ const moment = require('moment-timezone'); // 引入 moment-timezone
 
 
 const xuiUrl = process.env.XUI_URL || 'http://localhost:21211/xuiop';
-const api_key = process.env.API_KEY || 'your key'; // API 密钥
+const api_key = process.env.API_KEY || 'your-key'; // API 密钥
 
 // 所有接口都加上鉴权中间件
 router.use(authenticate);
@@ -42,9 +42,9 @@ const updateEmail = async (id, email) => {
         const result = await response.json();
 
         if (response.ok) {
-            logger.info(`更新成功: ${id}-${email}`);
+            logger.info(`更新成功: ${id}-[${email}]`);
         } else {
-            logger.error(`更新失败: ${id}-${email}`);
+            logger.error(`更新失败: ${id}-[${email}]`);
         }
     } catch (err) {
         logger.error(`请求异常: ${err.message}`);
@@ -61,30 +61,46 @@ router.post('/pay', async (req, res) => {
             return res.status(400).json({ success: false, message: '缺少必要参数 email 或 price' });
         }
 
-        // 查找价格匹配且未售出的节点
-        const node = await NodeInfo.findOne({ price, isSold: false });
+        // 检查当前email是否已存在
+        const existingNode = await NodeInfo.findOne({ email, isSold: true });
+        if (existingNode) {
+            logger.info(`/notify/pay 邮箱 ${email} 已存在，进行续费操作`);
+            // 如果已存在，就是续费操作
+            // 获取当前时间并转换为中国时区
+            const endTime = moment(existingNode.endTime).add(31, 'days').toDate(); // 当前时间加31天（中国时区）
+            // 修改其结束时间
+            existingNode.endTime = endTime; // 设置结束时间为31天后
+            await existingNode.save();
+            // 向xui服务器发送请求，增加对应email节点的流量，+300GB，待实现
+        } else {
+            logger.info(`/notify/pay 邮箱 ${email} 不存在，进行新购操作`);
+            // 如果不存在，就是新购操作
+            // 查找价格匹配且未售出的节点
+            const node = await NodeInfo.findOne({ price, isSold: false });
 
-        if (!node) {
-            return res.status(404).json({ success: false, message: '未找到匹配的节点信息' });
+            if (!node) {
+                return res.status(404).json({ success: false, message: '未找到匹配的节点信息' });
+            }
+
+            // 获取当前时间并转换为中国时区
+            const currentTime = moment().tz('Asia/Shanghai').toDate(); // 当前时间（中国时区）
+            const endTime = moment(currentTime).add(31, 'days').toDate(); // 当前时间加31天（中国时区）
+
+            // 更新节点信息
+            node.email = email;
+            node.isSold = true;
+            node.startTime = currentTime; // 设置起始时间为当前时间
+            node.endTime = endTime; // 设置结束时间为31天后
+            await node.save();
+
+            // 从 NodeInfo 中获取 uuid
+            const uuid = extractUUIDFromVlessList(node.vlessList);
+            logger.info(`/notify/pay 提取到的 UUID: ${uuid}`);
+
+            // 向xui服务器发送请求，更新uuid对应的节点的email信息
+            updateEmail(uuid, email);
         }
 
-        // 获取当前时间并转换为中国时区
-        const currentTime = moment().tz('Asia/Shanghai').toDate(); // 当前时间（中国时区）
-        const endTime = moment(currentTime).add(31, 'days').toDate(); // 当前时间加31天（中国时区）
-
-        // 更新节点信息
-        node.email = email;
-        node.isSold = true;
-        node.startTime = currentTime; // 设置起始时间为当前时间
-        node.endTime = endTime; // 设置结束时间为31天后
-        await node.save();
-
-        // 从 NodeInfo 中获取 uuid
-        const uuid = extractUUIDFromVlessList(node.vlessList);
-        logger.info(`提取到的 UUID: ${uuid}`);
-
-        // 向xui服务器发送请求，更新uuid对应的节点的email信息
-        updateEmail(uuid, email);
 
         // 从 SendEmail 数据库中获取发件人信息
         const sendEmailInfo = await SendEmail.findOne();
@@ -123,13 +139,13 @@ router.post('/pay', async (req, res) => {
 
         if (!emailResponse.ok) {
             const errorText = await emailResponse.text();
-            logger.error(`发送邮件失败: ${errorText}`);
+            logger.error(`/notify/pay 发送邮件失败: ${errorText}`);
             return res.status(500).json({ success: false, message: '节点信息保存成功，但发送邮件失败' });
         }
 
-        res.json({ success: true, message: '节点信息更新成功并已发送邮件', data: node });
+        res.json({ success: true, message: '节点信息更新成功并已发送邮件'});
     } catch (err) {
-        logger.error(`处理支付通知失败: ${err.message}`);
+        logger.error(`/notify/pay 处理支付通知失败: ${err.message}`);
         res.status(500).json({ success: false, message: '处理支付通知失败', error: err.message });
     }
 });
