@@ -87,7 +87,6 @@ async function queryFlow() {
                 const response = await fetch(`${xui_url}/flow/${email}/flow`, {
                     method: 'GET',
                     headers: {
-                        'Content-Type': 'application/json',
                         'Authorization': `Bearer ${api_key}`
                     }
                 });
