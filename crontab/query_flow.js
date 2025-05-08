@@ -11,9 +11,13 @@ function delay(ms) {
 
 // 从 Vless 链接中提取 UUID
 function getUUIDFromEmail(email) {
-    const vlessList = NodeInfo.findOne({ email, isSold: true }, 'vlessList');
+    const node = NodeInfo.findOne({ email, isSold: true });
+    if (!node) {
+        logger.error(`未找到与 ${email} 关联的节点信息`);
+        return null;
+    }
 
-    const lines = vlessList.trim().split('\n');
+    const lines = node.vlessList.trim().split('\n');
     const firstVless = lines.find(line => line.startsWith('vless://'));
   
     if (!firstVless) return null;
