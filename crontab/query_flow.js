@@ -9,23 +9,28 @@ function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// 从 Vless 链接中提取 UUID
-function getUUIDFromEmail(email) {
-    const node = NodeInfo.findOne({ email, isSold: true });
-    if (!node) {
+
+async function getUUIDByEmail(email) {
+    try {
+      const node = await NodeInfo.findOne({ email, isSold: true });
+      if (!node || !node.vlessList) {
         logger.error(`未找到与 ${email} 关联的节点信息`);
         return null;
+      }
+  
+      const list = node.vlessList.trim().split('\n'); // 每行一个 vless
+      const firstVless = list.find(line => line.startsWith('vless://'));
+      if (!firstVless) {
+        return null;
+      }
+  
+      const afterProtocol = firstVless.split('vless://')[1];
+      const uuid = afterProtocol.split('@')[0];
+      return uuid;
+    } catch (err) {
+      console.error('Error fetching UUID:', err);
+      return null;
     }
-
-    const lines = node.vlessList.split('\n');
-    const firstVless = lines.find(line => line.startsWith('vless://'));
-  
-    if (!firstVless) return null;
-  
-    const afterProtocol = firstVless.split('vless://')[1];
-    const uuid = afterProtocol.split('@')[0];
-  
-    return uuid;
 }
 
 const updateEmail = async (id, email) => {
@@ -80,7 +85,8 @@ async function queryFlow() {
                 const response = await fetch(`${xui_url}/flow/${email}/flow`);
                 if (!response.ok) {
                     // 如果响应状态码不是 200，根据uuid向xui服务器同步email
-                    const uuid = getUUIDFromEmail(email);
+                    const uuid = await getUUIDByEmail(email);
+                    logger.info(`提取到的 UUID: ${uuid}`);
                     updateEmail(uuid, email);
 
                     throw new Error(`HTTP 请求失败，状态码: ${response.status}`);
