@@ -9,6 +9,43 @@ function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// 从 Vless 链接中提取 UUID
+function getUUIDFromEmail(email) {
+    const vlessList = NodeInfo.findOne({ email, isSold: true }, 'vlessList');
+
+    const lines = vlessList.trim().split('\n');
+    const firstVless = lines.find(line => line.startsWith('vless://'));
+  
+    if (!firstVless) return null;
+  
+    const afterProtocol = firstVless.split('vless://')[1];
+    const uuid = afterProtocol.split('@')[0];
+  
+    return uuid;
+}
+
+const updateEmail = async (id, email) => {
+    try {
+        const response = await fetch(`${xui_url}/uuid/${id}/email`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            logger.info(`更新成功: ${id}-${email}`);
+        } else {
+            logger.error(`更新失败: ${id}-${email}`);
+        }
+    } catch (err) {
+        logger.error(`请求异常: ${err.message}`);
+    }
+};
+
 // 获取数据库中 NodeInfo 表中已售出节点的 email 列表
 async function getEmailList() {
     try {
@@ -38,6 +75,10 @@ async function queryFlow() {
                 // 使用 fetch 替代 axios
                 const response = await fetch(`${xui_url}/flow/${email}/flow`);
                 if (!response.ok) {
+                    // 如果响应状态码不是 200，根据uuid向xui服务器同步email
+                    const uuid = getUUIDFromEmail(email);
+                    updateEmail(uuid, email);
+
                     throw new Error(`HTTP 请求失败，状态码: ${response.status}`);
                 }
 
