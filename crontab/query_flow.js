@@ -17,7 +17,7 @@ function getUUIDFromEmail(email) {
         return null;
     }
 
-    const lines = node.vlessList.trim().split('\n');
+    const lines = node.vlessList.split('\n');
     const firstVless = lines.find(line => line.startsWith('vless://'));
   
     if (!firstVless) return null;
