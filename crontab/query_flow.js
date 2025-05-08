@@ -4,6 +4,7 @@ const NodeInfo = require('../models/NodeInfo'); // 引入 NodeInfo 模型
 const moment = require('moment-timezone'); // 引入 moment-timezone 模块
 
 const xui_url = process.env.XUI_URL || 'http://localhost:21211/xuiop'; // XUI 的 URL
+const api_key = process.env.API_KEY || 'your key'; // API 密钥
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -38,7 +39,8 @@ const updateEmail = async (id, email) => {
         const response = await fetch(`${xui_url}/uuid/${id}/email`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${api_key}`
             },
             body: JSON.stringify({ email })
         });
@@ -82,7 +84,13 @@ async function queryFlow() {
             try {
                 logger.info(`xui_url : ${xui_url}`);
                 // 使用 fetch 替代 axios
-                const response = await fetch(`${xui_url}/flow/${email}/flow`);
+                const response = await fetch(`${xui_url}/flow/${email}/flow`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${api_key}`
+                    }
+                });
                 if (!response.ok) {
                     // 如果响应状态码不是 200，根据uuid向xui服务器同步email
                     const uuid = await getUUIDByEmail(email);

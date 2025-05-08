@@ -10,6 +10,7 @@ const moment = require('moment-timezone'); // 引入 moment-timezone
 
 
 const xuiUrl = process.env.XUI_URL || 'http://localhost:21211/xuiop';
+const api_key = process.env.API_KEY || 'your key'; // API 密钥
 
 // 所有接口都加上鉴权中间件
 router.use(authenticate);
@@ -32,7 +33,8 @@ const updateEmail = async (id, email) => {
         const response = await fetch(`${xuiUrl}/uuid/${id}/email`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${api_key}`
             },
             body: JSON.stringify({ email })
         });
