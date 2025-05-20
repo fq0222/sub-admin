@@ -133,8 +133,8 @@ async function queryFlow() {
     logger.info('queryFlow 查询流量任务执行结束');
 }
 
-// 定时任务：每天凌晨 2 点执行
-// cron.schedule('0 2 * * *', queryFlow);
+// 定时任务：每天凌晨 3 点执行
+// cron.schedule('0 3 * * *', queryFlow, {timezone: 'Asia/Shanghai'});
 // 定时任务：每两个小时执行一次
 cron.schedule('0 */2 * * *', queryFlow);
 // 测试2分钟一次

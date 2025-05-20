@@ -21,6 +21,7 @@ connectDB();
 
 // 引入定时任务模块
 require('./crontab/query_flow'); // 查询流量定时任务
+require('./crontab/checkExpired'); // 过期检查定时任务
 
 app.use(cors()); // 允许所有来源发起的跨域请求
 app.use(express.json());
